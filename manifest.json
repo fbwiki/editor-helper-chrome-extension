@@ -1,0 +1,26 @@
+{
+  "manifest_version": 2,
+
+  "name": "fb-places-pro",
+  "short_name" : "fbpp",
+  "description": "This extension enhances the productivity of the fb places editor.",
+  "version": "0.0.1",
+  "icons": { "128": "fbpp.png" },
+    
+  "permissions": [
+    "http://*.facebook.com/*",
+    "tabs",
+    "storage"
+  ],
+ 
+  "background": {
+    "scripts": ["jquery.min.js","bg.js"],
+    "persistent": false
+  },
+
+  "page_action": {
+    "default_title": "fb places pro",
+    "default_icon": "fbpp-32.png",
+    "default_popup": "fbpp.html"
+  }
+}
