@@ -5,10 +5,10 @@
   "short_name" : "fbpp",
   "description": "This extension enhances the productivity of the fb places editor.",
   "version": "0.0.1",
-  "icons": { "128": "fbpp.png" },
+  "icons": { "128": "fbpp-128.png" },
     
   "permissions": [
-    "http://*.facebook.com/*",
+    "https://www.facebook.com/editor",
     "tabs",
     "storage"
   ],
