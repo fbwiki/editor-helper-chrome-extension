@@ -28,44 +28,33 @@ $(window).resize(function(){
   resizeElements("fbpp document resize!");
 });
 
+var editBox = $("._5w0h");
+var container= $("._4ph-");
+var map =  $(".fbAggregatedMapContainer");
+var mapButtons = $(".fbMapsButtonStack");
+
 function modifyDOM(){
+  var fbppMenuBar = $("#fbpp");
+  if (!fbppMenuBar[0]) {
+    var fbppDivStyle = "'background-color: rgb(55, 62, 77); color:#fff; width:100%; height:40px;'";
+    var fbppMenuStyle = "'padding-top: 8px; padding-left: 16px; font-size: 20px'";
+    var fbppHTML = "<div id='fbpp' style="+fbppDivStyle+"><div style="+fbppMenuStyle+">fbpp menu bar</div></div>";
+    map.prepend(fbppHTML);
+  }
   resizeElements();
+
 };
 
 function resizeElements(){
-  var editBox = $("._5w0h");
   var topOfEditor = editBox.position().top;
   var rightOfEditor = editBox[0].getBoundingClientRect().right;
-  var container= $("._4ph-");
   var rightOfContainer = container[0].getBoundingClientRect().right;
 
-  var map =  $(".fbAggregatedMapContainer");
-  var mapButtons = $(".fbMapsButtonStack");
-
   map.css("top",topOfEditor);
-  map.css("width",rightOfContainer-rightOfEditor-20);
+  map.css("width",rightOfContainer-rightOfEditor-22);
   map.css("left",rightOfEditor+10);
   map.css("height",editBox[0].getBoundingClientRect().height);
 
-  mapButtons.css("top",topOfEditor+20);
-  mapButtons.css("left",rightOfEditor+20);
+  mapButtons.css("top",topOfEditor+50);
+  mapButtons.css("left",rightOfEditor-30);
 };
-
-chrome.runtime.onMessage.addListener( function(request, sender, sendResponse) { // this listener is required to get the Keywords over from
-  Keywords = request.Keywords;                                                  // localStorage in the context of the popup and background script 
-  if (dbg) {
-    console.log("Received keywords from background script.");
-    console.log(Keywords);
-  }
-  if ( typeof(Keywords)=="object" && Keywords.length>0 ){
-    deKardashianize();
-  }
-  else if ( itypeof(Keywords)=="object" && Keywords.length==0 ) {
-    console.log("List of Keywords is empty!");
-  }
-  else {
-    console.log("'Keywords' is of type "+typeof(Keywords)+" should be 'object'");
-  }
-  return;
-});
-
