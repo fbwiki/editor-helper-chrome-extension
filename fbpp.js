@@ -18,43 +18,109 @@
 console.log("fbpp.js");
 
 var dbg = false; // debug switch
+var editBox = "";
+var container= "";
+var map = "";
+var mapButtons = "";
+var fbppContent = "";
+var pageName = "";
+var pageAddress = "";
+
 
 $(document).ready(function(){
   console.log("fbpp document ready!");
+  findElements();
   modifyDOM();
+
+  $("#fbpp_showMap").click(function(){
+    showMap();
+    $("#fbpp_iFrame").css("display","none");
+  })
+
+  $("#fbpp_showBing").click(function(){
+    map.css("display","none");
+    mapButtons.css("display","none");
+    pageName = encodeURIComponent($("._4c0z").find("a").text());
+    console.log(pageName);
+    $("#fbpp_iFrame").attr('src',"https://www.bing.com/search?q="+pageName);
+    $("#fbpp_iFrame").css("display","block");
+  })
+
+  $("#fbpp_showBingWithCity").click(function(){
+    map.css("display","none");
+    mapButtons.css("display","none");
+    pageName = encodeURIComponent($("._4c0z").find("a").text()+" "+$(".fwn.fcw").text());
+    console.log(pageName);
+    $("#fbpp_iFrame").attr('src',"https://www.bing.com/search?q="+pageName);
+    $("#fbpp_iFrame").css("display","block");
+  })
+
+  $("#fbpp_report").click(function(){
+    console.log("hook to report button here");
+  })
+
+  $("#places_editor_save").click(function(){
+    showMap();
+  })
 });
+
+function showMap(){
+  map.css("display","block");
+  mapButtons.css("display","block");
+  $("#fbpp_iFrame").css("display","none");
+}
 
 $(window).resize(function(){
   resizeElements("fbpp document resize!");
 });
 
-var editBox = $("._5w0h");
-var container= $("._4ph-");
-var map =  $(".fbAggregatedMapContainer");
-var mapButtons = $(".fbMapsButtonStack");
+function findElements(){
+  editBox = $("._5w0h");
+  container= $("._4ph-");
+  map =  $(".fbAggregatedMapContainer");
+  mapButtons = $(".fbMapsButtonStack");
+}
 
 function modifyDOM(){
   var fbppMenuBar = $("#fbpp");
   if (!fbppMenuBar[0]) {
+    map.wrap("<div id='fbppContent'></div>");
+    $("#fbppContent").wrap("<div id='fbppBox'></div>");
     var fbppDivStyle = "'background-color: rgb(55, 62, 77); color:#fff; width:100%; height:40px;'";
-    var fbppMenuStyle = "'padding-top: 8px; padding-left: 16px; font-size: 20px'";
-    var fbppHTML = "<div id='fbpp' style="+fbppDivStyle+"><div style="+fbppMenuStyle+">fbpp menu bar</div></div>";
-    map.prepend(fbppHTML);
+    var fbppButtonStyle ="'font-size: 16px; background-color: rgb(55,62,77); color: #fff; border:0; padding-top: 11px; padding-left: 30px; outline: none;'";
+    var fbppHTML = "<div id='fbpp' style="+fbppDivStyle+"></div>";
+    $("#fbppBox").prepend(fbppHTML);
+    var btn = "<button id='fbpp_showMap' style="+fbppButtonStyle+">Map</button>"
+    $("#fbpp").append(btn);
+    var btn = "<button id='fbpp_showBing' style="+fbppButtonStyle+">Bing</button>"
+    $("#fbpp").append(btn);
+    var btn = "<button id='fbpp_showBingWithCity' style="+fbppButtonStyle+">Bing (with Address)</button>"
+    $("#fbpp").append(btn);
+    var btn = "<button id='fbpp_report' style="+fbppButtonStyle+">Report</button>"
+    $("#fbpp").append(btn);
+    $("#fbppContent").append("<iframe id='fbpp_iFrame' frameborder='0'></iframe>");
+    $("#fbpp_iFrame").css("display","none");
   }
   resizeElements();
-
-};
+}
 
 function resizeElements(){
   var topOfEditor = editBox.position().top;
   var rightOfEditor = editBox[0].getBoundingClientRect().right;
   var rightOfContainer = container[0].getBoundingClientRect().right;
+  fbppBox=$("#fbppBox");
 
-  map.css("top",topOfEditor);
-  map.css("width",rightOfContainer-rightOfEditor-22);
-  map.css("left",rightOfEditor+10);
-  map.css("height",editBox[0].getBoundingClientRect().height);
+  fbppBox.css("top",topOfEditor);
+  fbppBox.css("width",rightOfContainer-rightOfEditor-22);
+  fbppBox.css("left",rightOfEditor+10);
+  fbppBox.css("height",editBox[0].getBoundingClientRect().height);
+  fbppBox.css("position","absolute");
+
+  map.css("height",editBox[0].getBoundingClientRect().height-40);
 
   mapButtons.css("top",topOfEditor+50);
   mapButtons.css("left",rightOfEditor-30);
-};
+
+  $("#fbpp_iFrame").css("height",editBox[0].getBoundingClientRect().height-40);
+  $("#fbpp_iFrame").css("width",rightOfContainer-rightOfEditor-25);
+}
