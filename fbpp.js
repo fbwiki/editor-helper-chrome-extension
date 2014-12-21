@@ -13,6 +13,7 @@
  * .fbMapsButtonStack         map zoom in/out buttons
  * #u_0_6                     the div that holds the map
  * ._4ph-                     the main div that holds both the editor and map
+ * ._54ni                     holds the "edit" and "report" links.
  */
 
 console.log("fbpp.js");
@@ -40,7 +41,7 @@ $(document).ready(function(){
   $("#fbpp_showBing").click(function(){
     map.css("display","none");
     mapButtons.css("display","none");
-    pageName = encodeURIComponent($("._4c0z").find("a").text());
+    pageName = encodeURIComponent($("._4c0z").find("a").text().trim());
     console.log(pageName);
     $("#fbpp_iFrame").attr('src',"https://www.bing.com/search?q="+pageName);
     $("#fbpp_iFrame").css("display","block");
@@ -49,14 +50,21 @@ $(document).ready(function(){
   $("#fbpp_showBingWithCity").click(function(){
     map.css("display","none");
     mapButtons.css("display","none");
-    pageName = encodeURIComponent($("._4c0z").find("a").text()+" "+$(".fwn.fcw").text());
-    console.log(pageName);
-    $("#fbpp_iFrame").attr('src',"https://www.bing.com/search?q="+pageName);
-    $("#fbpp_iFrame").css("display","block");
+    var addressParts = $(".fwn.fcw").text().split("·");
+    if ( addressParts ){
+      pageName = encodeURIComponent($("._4c0z").find("a").text().trim()+" "+addressParts[addressParts.length-1].trim());
+      console.log(pageName);
+      $("#fbpp_iFrame").attr('src',"https://www.bing.com/search?q="+pageName);
+      $("#fbpp_iFrame").css("display","block");
+    }
   })
 
-  $("#fbpp_report").click(function(){
-    console.log("hook to report button here");
+  $("#fbpp_reportButton").click(function(){
+    var pageId = $("input[name=page_id]").attr("value");
+    var cityId = $("input[name=seed]").attr("value");
+
+    $("#fbpp_report").attr('ajaxify',"/ajax/report.php?content_type=64&cid="+pageId+"&city_id="+cityId);
+    $("#fbpp_report")[0].click();
   })
 
   $("#places_editor_save").click(function(){
@@ -90,14 +98,11 @@ function modifyDOM(){
     var fbppButtonStyle ="'font-size: 16px; background-color: rgb(55,62,77); color: #fff; border:0; padding-top: 11px; padding-left: 30px; outline: none;'";
     var fbppHTML = "<div id='fbpp' style="+fbppDivStyle+"></div>";
     $("#fbppBox").prepend(fbppHTML);
-    var btn = "<button id='fbpp_showMap' style="+fbppButtonStyle+">Map</button>"
-    $("#fbpp").append(btn);
-    var btn = "<button id='fbpp_showBing' style="+fbppButtonStyle+">Bing</button>"
-    $("#fbpp").append(btn);
-    var btn = "<button id='fbpp_showBingWithCity' style="+fbppButtonStyle+">Bing (with Address)</button>"
-    $("#fbpp").append(btn);
-    var btn = "<button id='fbpp_report' style="+fbppButtonStyle+">Report</button>"
-    $("#fbpp").append(btn);
+    $("#fbpp").append("<button id='fbpp_showMap' style="+fbppButtonStyle+">Map</button>");
+    $("#fbpp").append("<button id='fbpp_showBing' style="+fbppButtonStyle+">Bing</button>");
+    $("#fbpp").append("<button id='fbpp_showBingWithCity' style="+fbppButtonStyle+">Bing (with city)</button>");
+    $("#fbpp").append("<button id='fbpp_reportButton' style="+fbppButtonStyle+">Report</button>");
+    $("#fbpp").append("<a id='fbpp_report' class='_54nc' href='#' rel='dialog' role='menuitem'></a>");
     $("#fbppContent").append("<iframe id='fbpp_iFrame' frameborder='0'></iframe>");
     $("#fbpp_iFrame").css("display","none");
   }
