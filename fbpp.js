@@ -14,11 +14,15 @@
  * #u_0_6                     the div that holds the map
  * ._4ph-                     the main div that holds both the editor and map
  * ._54ni                     holds the "edit" and "report" links.
+ * input[name=page_id]        identifies the node
+ * input[name=seed]           identifies the city (although it's called a seed in one place, a cityId elsewhere)
+ *
+ * See https://github.com/CombatChihuahua/fb-places-pro
  */
 
 console.log("fbpp.js");
 
-var dbg = false; // debug switch
+// Initialize various variables
 var editBox = "";
 var container= "";
 var map = "";
@@ -27,18 +31,17 @@ var fbppContent = "";
 var pageName = "";
 var pageAddress = "";
 
-
-$(document).ready(function(){
+$(document).ready(function(){ // load the extension objects once the page has finished loading
   console.log("fbpp document ready!");
   findElements();
   modifyDOM();
 
-  $("#fbpp_showMap").click(function(){
+  $("#fbpp_showMap").click(function(){ // show the map
     showMap();
     $("#fbpp_iFrame").css("display","none");
   })
 
-  $("#fbpp_showBing").click(function(){
+  $("#fbpp_showBing").click(function(){ // show the bing search in an iFrame
     map.css("display","none");
     mapButtons.css("display","none");
     pageName = encodeURIComponent($("._4c0z").find("a").text().trim());
@@ -47,7 +50,7 @@ $(document).ready(function(){
     $("#fbpp_iFrame").css("display","block");
   })
 
-  $("#fbpp_showBingWithCity").click(function(){
+  $("#fbpp_showBingWithCity").click(function(){ // show the bing search, but include the city
     map.css("display","none");
     mapButtons.css("display","none");
     var addressParts = $(".fwn.fcw").text().split("·");
@@ -59,7 +62,7 @@ $(document).ready(function(){
     }
   })
 
-  $("#fbpp_reportButton").click(function(){
+  $("#fbpp_reportButton").click(function(){ // this will bring up the report dialog box
     var pageId = $("input[name=page_id]").attr("value");
     var cityId = $("input[name=seed]").attr("value");
 
@@ -78,24 +81,24 @@ function showMap(){
   $("#fbpp_iFrame").css("display","none");
 }
 
-$(window).resize(function(){
+$(window).resize(function(){ // resize the fbpp box when the window resizes
   resizeElements("fbpp document resize!");
 });
 
-function findElements(){
+function findElements(){ // these are used a lot
   editBox = $("._5w0h");
   container= $("._4ph-");
   map =  $(".fbAggregatedMapContainer");
   mapButtons = $(".fbMapsButtonStack");
 }
 
-function modifyDOM(){
+function modifyDOM(){ // modify the DOM to add the fbpp elements
   var fbppMenuBar = $("#fbpp");
   if (!fbppMenuBar[0]) {
-    map.wrap("<div id='fbppContent'></div>");
+    map.wrap("<div id='fbppContent'></div>"); // the content area
     $("#fbppContent").wrap("<div id='fbppBox'></div>");
     var fbppDivStyle = "'background-color: rgb(55, 62, 77); color:#fff; width:100%; height:40px;'";
-    var fbppButtonStyle ="'font-size: 16px; background-color: rgb(55,62,77); color: #fff; border:0; padding-top: 11px; padding-left: 30px; outline: none;'";
+    var fbppButtonStyle ="'font-size: 14px; background-color: rgb(55,62,77); color: #fff; border:0; padding-top: 12px; padding-left: 20px; outline: none;'";
     var fbppHTML = "<div id='fbpp' style="+fbppDivStyle+"></div>";
     $("#fbppBox").prepend(fbppHTML);
     $("#fbpp").append("<button id='fbpp_showMap' style="+fbppButtonStyle+">Map</button>");
