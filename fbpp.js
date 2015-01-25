@@ -2,7 +2,7 @@
  * This modifies the fb places editor to add new capabilities which will
  * hopefully boost the productivity of people using the editor
  *
- * Description of patterns in the fb editor:
+ * Description of patterns in the fb places editor DOM:
  *
  * Containing Element
  * ------------------
@@ -17,7 +17,6 @@
  * input[name=page_id]        the graph node id
  * input[name=seed]           the city id (although it's called a seed in one place, a cityId elsewhere)
  * .fwn.fcw                   the address and city in text
- * a[title='Bing Maps']")     the anchor that references the map coordinates of the graph node
  *
  * See https://github.com/CombatChihuahua/fb-places-pro
  */
@@ -86,18 +85,7 @@ function showMap(){
 }
 
 function showSimilarNearby(){
-  var pageId = $("input[name=page_id]")[0].value;
-  var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){ // this call works *without* an access token!
-    var latitude = data.location.latitude;
-    var longitude = data.location.longitude;
-    var pageName = $("._4c0z").find("a").text().trim().split(" ").slice(0,3).join("+"); //first 3 words of place name
-    var url = "https://www.facebook.com/ajax/places/typeahead?value=" + 
-      pageName+"&latitude="+latitude+"&longitude="+longitude+"&existing_ids="+pageId +
-      "&include_address=2&include_subtext=true&exact_match=false&use_unicorn=true&allow_places=true&allow_cities=true&render_map=true&limit=15&proximity_boost=true&map_height=150&map_width=348&ref=PlaceReportDialog%3A%3ArenderDuplicatePlaceTypeahead&__a=1";
-
-  $("#fbppContent").load(url);
-
-  /* Tried to use the graph API but it doesn't yet support "graph search" with
+   /* Tried to use the graph API but it doesn't yet support "graph search" with
    * fuzzy name matching. Basically couldn't be done.
    *
    * By inspecting facebook's ajax calls, discovered the ajax typeahead handler
@@ -115,6 +103,25 @@ function showSimilarNearby(){
    * results, facebook is looking all over the world for dupes. It would be good
    * to remove the ones >~100 miles away. Need the formula for great circle
    * distance between two lat-long coordinates */
+
+  var pageId = $("input[name=page_id]")[0].value;
+  var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){ // this call works *without* an access token!
+    var latitude = data.location.latitude;
+    var longitude = data.location.longitude;
+    var pageName = $("._4c0z").find("a").text().trim().split(" ").slice(0,3).join("+"); //first 3 words of place name
+    var url = "https://www.facebook.com/ajax/places/typeahead?value=" + 
+      pageName+"&latitude="+latitude+"&longitude="+longitude+"&existing_ids="+pageId +
+      "&include_address=2&include_subtext=true&exact_match=false&use_unicorn=true&allow_places=true&allow_cities=true&render_map=true&limit=15&proximity_boost=true&map_height=150&map_width=348&ref=PlaceReportDialog%3A%3ArenderDuplicatePlaceTypeahead&__a=1";
+
+    $("#fbppContent").load(url);
+
+    $.ajax({url: url, headers: {method: "GET", scheme: "https", accept: "*/*",
+      version: "HTTP/1.1", 'accept-language': "en-US,en;q=0.8,fr;q=0.6" },
+      success: function(result){
+        console.log("Sample of data "+result.slice(0,100));
+      }
+    });
+
   })
 }
 
@@ -191,7 +198,6 @@ var GreatCircle = {
     var a = Math.pow(Math.cos(lat2) * Math.sin(lonDelta) , 2) + Math.pow(Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(lonDelta) , 2);
     var b = Math.sin(lat1) * Math.sin(lat2) + Math.cos(lat1) * Math.cos(lat2) * Math.cos(lonDelta);
     var angle = Math.atan2(Math.sqrt(a) , b);
-
     return angle * r;
   }
 }
