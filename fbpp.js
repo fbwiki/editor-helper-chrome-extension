@@ -44,7 +44,7 @@ $(document).ready(function(){ // load the extension objects once the page has fi
   resizeElements();
 
   $("#fbpp_showMap").click(function(){ // show the map
-    mapButtons.css("display","block");
+    showMap();
   })
 
   $("#fbpp_showBing").click(function(){ // show the bing search, but include the city
@@ -81,8 +81,9 @@ $(document).ready(function(){ // load the extension objects once the page has fi
   })
 });
 
-
-  $("#fbpp_iFrame").css("display","none");
+function showMap(){
+  mapButtons.css("display","block");
+  $("#fbppContent").html(map);
 }
 
 function showSimilarNearby(){
@@ -90,10 +91,13 @@ function showSimilarNearby(){
   var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){
     var latitude = data.location.latitude;
     var longitude = data.location.longitude;
-    var pageName = $("._4c0z").find("a").text().trim().split(" ").slice(0,2).join("+"); //first 3 words of place name
+    var pageName = $("._4c0z").find("a").text().trim().split(" ").slice(0,3).join("+"); //first 3 words of place name
     var access_token ="CAACEdEose0cBAECbT0wFDpC3OSuGW5zKByQWs4QSfNoNgyhGOVY6BuMTp4L0RYza5fcFEBFJbqiD8mSpU3fC1yEn97gZBYMJqfui1PXp5l3fm4Pn1Bm4eWHqmLxTwMrdFCUqm5i2OnpC68ihKtHByFzZAvz6YznDfrYq2udGrBqFQtrJ3N6Q2qMcJiIZCDayFq5wzAm1HhbaHJLmVYv"
     var url = "https://graph.facebook.com/search?q="+pageName+"&type=place&center="+latitude+","+longitude+"&distance=30000&access_token="+access_token;
     $("#fbppContent").load(url);
+
+    /* need to process the returned data from the graph API to eliminate the current node
+     * then nicely display the potential duplicate records either in a list or on a map. */
   })
 }
 
