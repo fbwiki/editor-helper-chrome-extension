@@ -33,6 +33,10 @@ var fbppContent = "";
 var pageName = "";
 var pageAddress = "";
 
+/*
+
+*/
+
 $(document).ready(function(){ // load the extension objects once the page has finished loading
   console.log("fbpp document ready!");
   findElements();
@@ -40,25 +44,19 @@ $(document).ready(function(){ // load the extension objects once the page has fi
   resizeElements();
 
   $("#fbpp_showMap").click(function(){ // show the map
-    showMap();
-    $("#fbpp_iFrame").css("display","none"); // hide the iFrame
+    mapButtons.css("display","block");
   })
 
-  $("#fbpp_showBing").click(function(){ // show the bing search in an iFrame
-    hideMap();
-    pageName = encodeURIComponent($("._4c0z").find("a").text().trim());
-    $("#fbpp_iFrame").attr('src',"https://www.bing.com/search?q="+pageName);
-    $("#fbpp_iFrame").css("display","block");
-  })
-
-  $("#fbpp_showBingWithCity").click(function(){ // show the bing search, but include the city
-    hideMap();
+  $("#fbpp_showBing").click(function(){ // show the bing search, but include the city
+    mapButtons.css("display","none");
+    $("#fbppContent").html("<iframe id='fbpp_iFrame' frameborder='0'></iframe>");
+    $("#fbpp_iFrame").css("height",editBox[0].getBoundingClientRect().height-40);
+    $("#fbpp_iFrame").css("width",rightOfContainer-rightOfEditor-25);
     var addressParts = $(".fwn.fcw").text().split("·");
     if ( addressParts ){
-      pageName = encodeURIComponent($("._4c0z").find("a").text().trim()+" "+addressParts[addressParts.length-1].trim());
-      console.log(pageName);
+      var pageName = encodeURIComponent($("._4c0z").find("a").text().trim() +
+        " " + addressParts[addressParts.length-1].trim());
       $("#fbpp_iFrame").attr('src',"https://www.bing.com/search?q="+pageName);
-      $("#fbpp_iFrame").css("display","block");
     }
   })
 
@@ -74,27 +72,29 @@ $(document).ready(function(){ // load the extension objects once the page has fi
     showMap();
   })
 
+  $("#fbpp_showSimilarNearby").click(function(){
+    mapButtons.css("display","none");
+    showSimilarNearby();
+  })
+
   $("fbpp_reverseGeocode").click(function(){ // work in progress on reverse geocoding
-  var mapRef = $("a[title='Bing Maps']").attr('href'); // get the whole map reference
-    if ( mapRef.indexOf("&cp=")>0 ) {
-      mapRef=mapRef.split("&cp=")[1]; // get rid of the front part
-      if ( mapRef.indexOf("&lvl=")>0 ) {
-        mapRef=mapRef.split("&lvl=")[0]; // and now the back part, leaving the map coordinates
-        console.log(mapRef);
-      }
-    }
   })
 });
 
-function showMap(){
-  map.css("display","block");
-  mapButtons.css("display","block");
+
   $("#fbpp_iFrame").css("display","none");
 }
 
-function hideMap(){
-  map.css("display","none");
-  mapButtons.css("display","none");
+function showSimilarNearby(){
+  var pageId = $("input[name=page_id]")[0].value;
+  var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){
+    var latitude = data.location.latitude;
+    var longitude = data.location.longitude;
+    var pageName = $("._4c0z").find("a").text().trim().split(" ").slice(0,2).join("+"); //first 3 words of place name
+    var access_token ="CAACEdEose0cBAECbT0wFDpC3OSuGW5zKByQWs4QSfNoNgyhGOVY6BuMTp4L0RYza5fcFEBFJbqiD8mSpU3fC1yEn97gZBYMJqfui1PXp5l3fm4Pn1Bm4eWHqmLxTwMrdFCUqm5i2OnpC68ihKtHByFzZAvz6YznDfrYq2udGrBqFQtrJ3N6Q2qMcJiIZCDayFq5wzAm1HhbaHJLmVYv"
+    var url = "https://graph.facebook.com/search?q="+pageName+"&type=place&center="+latitude+","+longitude+"&distance=30000&access_token="+access_token;
+    $("#fbppContent").load(url);
+  })
 }
 
 $(window).resize(function(){ // resize the fbpp box when the window resizes
@@ -120,30 +120,34 @@ function modifyDOM(){ // modify the DOM to add the fbpp elements
 
   $("#fbppBox").prepend(fbppHTML); // the overall box
   $("#fbpp").append("<button id='fbpp_showMap' style="+fbppButtonStyle+">Map</button>");
-  $("#fbpp").append("<button id='fbpp_showBingWithCity' style="+fbppButtonStyle+">Bing</button>");
+  $("#fbpp").append("<button id='fbpp_showBing' style="+fbppButtonStyle+">Bing</button>");
   $("#fbpp").append("<button id='fbpp_reportButton' style="+fbppButtonStyle+">Report</button>");
+  $("#fbpp").append("<button id='fbpp_showSimilarNearby' style="+fbppButtonStyle+">Similar Nearby</button>");
   $("#fbpp").append("<a id='fbpp_report' class='_54nc' href='#' rel='dialog' role='menuitem'></a>");
-  $("#fbppContent").append("<iframe id='fbpp_iFrame' frameborder='0'></iframe>");
-  $("#fbpp_iFrame").css("display","none");
 }
 
+// pattern for finding nearby places:
+// https://www.facebook.com/search/$PLACE_ID/places-near/str/$NAME/places-named/intersect
+
 function resizeElements(){ // handle resize events (the editor box has a fixed width, so use the rest of the page)
-  var topOfEditor = editBox.position().top;
-  var rightOfEditor = editBox[0].getBoundingClientRect().right;
-  var rightOfContainer = container[0].getBoundingClientRect().right;
-  fbppBox=$("#fbppBox");
+  if ( editBox) {
+    topOfEditor = editBox.position().top;
+    rightOfEditor = editBox[0].getBoundingClientRect().right;
+    rightOfContainer = container[0].getBoundingClientRect().right;
+    fbppBox=$("#fbppBox");
 
-  fbppBox.css("top",topOfEditor);
-  fbppBox.css("width",rightOfContainer-rightOfEditor-22);
-  fbppBox.css("left",rightOfEditor+10);
-  fbppBox.css("height",editBox[0].getBoundingClientRect().height);
-  fbppBox.css("position","absolute");
+    fbppBox.css("top",topOfEditor);
+    fbppBox.css("width",rightOfContainer-rightOfEditor-22);
+    fbppBox.css("left",rightOfEditor+10);
+    fbppBox.css("height",editBox[0].getBoundingClientRect().height);
+    fbppBox.css("position","absolute");
 
-  map.css("height",editBox[0].getBoundingClientRect().height-40);
+    map.css("height",editBox[0].getBoundingClientRect().height-40);
 
-  mapButtons.css("top",topOfEditor+50);
-  mapButtons.css("left",rightOfEditor-30);
+    mapButtons.css("top",topOfEditor+50);
+    mapButtons.css("left",rightOfEditor-30);
 
-  $("#fbpp_iFrame").css("height",editBox[0].getBoundingClientRect().height-40);
-  $("#fbpp_iFrame").css("width",rightOfContainer-rightOfEditor-25);
+    $("#fbpp_iFrame").css("height",editBox[0].getBoundingClientRect().height-40);
+    $("#fbpp_iFrame").css("width",rightOfContainer-rightOfEditor-25);
+  }
 }

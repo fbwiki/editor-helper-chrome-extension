@@ -5,6 +5,7 @@ chrome.runtime.onInstalled.addListener(function(details) { // when the extension
 });
 
 chrome.tabs.onUpdated.addListener(function(id, info, tab){ // Listen for any changes to the URL of any tab.
+
   if ( tab.url.toLowerCase().indexOf("facebook.com/editor")>0 ){ // see: http://developer.chrome.com/extensions/tabs.html#event-onUpdated
 
     var ON = JSON.parse(localStorage["fbpp"]);
