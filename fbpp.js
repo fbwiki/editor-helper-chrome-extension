@@ -108,17 +108,41 @@ function showSimilarNearby(){
   var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){ // this call works *without* an access token!
     var latitude = data.location.latitude;
     var longitude = data.location.longitude;
-    var pageName = $("._4c0z").find("a").text().trim().split(" ").slice(0,3).join("+"); //first 3 words of place name
+    var pageName = encodeURIComponent($("._4c0z").find("a").text().trim().split(" ").slice(0,3).join(" ")); //first 3 words of place name
     var url = "https://www.facebook.com/ajax/places/typeahead?value=" + 
       pageName+"&latitude="+latitude+"&longitude="+longitude+"&existing_ids="+pageId +
       "&include_address=2&include_subtext=true&exact_match=false&use_unicorn=true&allow_places=true&allow_cities=true&render_map=true&limit=15&proximity_boost=true&map_height=150&map_width=348&ref=PlaceReportDialog%3A%3ArenderDuplicatePlaceTypeahead&__a=1";
 
-    $("#fbppContent").load(url);
 
     $.ajax({url: url, headers: {method: "GET", scheme: "https", accept: "*/*",
-      version: "HTTP/1.1", 'accept-language': "en-US,en;q=0.8,fr;q=0.6" },
-      success: function(result){
-        console.log("Sample of data "+result.slice(0,100));
+      version: "HTTP/1.1", 'accept-language': "en-US,en;q=0.8,fr;q=0.6",
+      cache: true, processData: false},
+      complete: function(xhr,status){
+        var data = xhr.responseText;
+        var json = JSON.parse(data.substr(data.indexOf("{")));
+
+        /* the matches are in json.payload.entries, an array of objects of the form:
+         *
+         *  address: null
+            city_id: 2422390
+            city_name: "Tahoe City, CA"
+            city_page_id: 107885529244686
+            latitude: 39.1997079033
+            longitude: -120.237929977
+            map: Object
+            photo: "https://fbcdn-profile-a.akamaihd.net/static-ak/rsrc.php/v2/y5/r/j258ei8TIHu.png"
+            place_type: "place"
+            subtext: "Tahoe City, California · 14 were here"
+            text: "Pain Mcshlonky Gala"
+            uid: 177557992363854
+
+         * use these to construct the HTML for the similar places.
+         * Remove anything over 100 miles away. Optionally order by distance
+         */
+        $("#fbppContent").html(JSON.stringify(json));
+
+      },
+      error: function(jqXHR,textStatus,err) { // always get a parseError but don't care
       }
     });
 
