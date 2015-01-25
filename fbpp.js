@@ -33,11 +33,8 @@ var fbppContent = "";
 var pageName = "";
 var pageAddress = "";
 
-/*
-
-*/
-
 $(document).ready(function(){ // load the extension objects once the page has finished loading
+  // TBD this doesn't work when coming in from a notification about recent edits
   console.log("fbpp document ready!");
   findElements();
   modifyDOM();
@@ -48,6 +45,8 @@ $(document).ready(function(){ // load the extension objects once the page has fi
   })
 
   $("#fbpp_showBing").click(function(){ // show the bing search, but include the city
+    // TBD we can avoid loading bing repeatedly with the same string if we remember it
+    // between invocations
     mapButtons.css("display","none");
     $("#fbppContent").html("<iframe id='fbpp_iFrame' frameborder='0'></iframe>");
     $("#fbpp_iFrame").css("height",editBox[0].getBoundingClientRect().height-40);
@@ -88,16 +87,34 @@ function showMap(){
 
 function showSimilarNearby(){
   var pageId = $("input[name=page_id]")[0].value;
-  var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){
+  var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){ // this call works *without* an access token!
     var latitude = data.location.latitude;
     var longitude = data.location.longitude;
     var pageName = $("._4c0z").find("a").text().trim().split(" ").slice(0,3).join("+"); //first 3 words of place name
-    var access_token ="CAACEdEose0cBAECbT0wFDpC3OSuGW5zKByQWs4QSfNoNgyhGOVY6BuMTp4L0RYza5fcFEBFJbqiD8mSpU3fC1yEn97gZBYMJqfui1PXp5l3fm4Pn1Bm4eWHqmLxTwMrdFCUqm5i2OnpC68ihKtHByFzZAvz6YznDfrYq2udGrBqFQtrJ3N6Q2qMcJiIZCDayFq5wzAm1HhbaHJLmVYv"
-    var url = "https://graph.facebook.com/search?q="+pageName+"&type=place&center="+latitude+","+longitude+"&distance=30000&access_token="+access_token;
-    $("#fbppContent").load(url);
+    var url = "https://www.facebook.com/ajax/places/typeahead?value=" + 
+      pageName+"&latitude="+latitude+"&longitude="+longitude+"&existing_ids="+pageId +
+      "&include_address=2&include_subtext=true&exact_match=false&use_unicorn=true&allow_places=true&allow_cities=true&render_map=true&limit=15&proximity_boost=true&map_height=150&map_width=348&ref=PlaceReportDialog%3A%3ArenderDuplicatePlaceTypeahead&__a=1";
 
-    /* need to process the returned data from the graph API to eliminate the current node
-     * then nicely display the potential duplicate records either in a list or on a map. */
+  $("#fbppContent").load(url);
+
+  /* Tried to use the graph API but it doesn't yet support "graph search" with
+   * fuzzy name matching. Basically couldn't be done.
+   *
+   * By inspecting facebook's ajax calls, discovered the ajax typeahead handler
+   * that is used to report dupes: it takes a request like:
+   *
+   *https://www.facebook.com/ajax/places/typeahead?value=nati&include_address=2&include_subtext=true&exact_match=false&use_unicorn=true&allow_places=true&allow_cities=true&render_map=true&limit=15&latitude=39.207887979133&longitude=-120.09159616732&proximity_boost=true&city_id=2418378&city_bias=false&allow_url=true&map_height=150&map_width=348&ref=PlaceReportDialog%3A%3ArenderDuplicatePlaceTypeahead&sid=60232222786&city_set=false&existing_ids=111507778889067&request_id=8cf4cd3e-eb65-4a13-91c5-674d1382b7d3&__user=569890504&__a=1&__dyn=7nmajEyl35zoSt2u6aOGeFz8C9ACxO4oKAdBGeqrWo8popyUW5ogxd6K59poW8xOdy8-&__req=7p&__rev=1573593
+   *
+   * But it doesn't seem to require all parameters so a simpler version is:
+   *
+   * https://www.facebook.com/ajax/places/typeahead?value=native%20landing&include_address=2&include_subtext=true&exact_match=false&use_unicorn=true&allow_places=true&allow_cities=true&render_map=true&limit=15&latitude=39.207887979133&longitude=-120.09159616732&proximity_boost=true&map_height=150&map_width=348&ref=PlaceReportDialog%3A%3ArenderDuplicatePlaceTypeahead&sid=60232222786&existing_ids=111507778889067&__a=1
+   * 
+   * I really wonder what the "use_unicorn" parameter is for...
+   *
+   * There doesn't appear to be anyway of restricting the radius of the returned
+   * results, facebook is looking all over the world for dupes. It would be good
+   * to remove the ones >~100 miles away. Need the formula for great circle
+   * distance between two lat-long coordinates */
   })
 }
 
@@ -150,8 +167,31 @@ function resizeElements(){ // handle resize events (the editor box has a fixed w
 
     mapButtons.css("top",topOfEditor+50);
     mapButtons.css("left",rightOfEditor-30);
+  }
+}
 
-    $("#fbpp_iFrame").css("height",editBox[0].getBoundingClientRect().height-40);
-    $("#fbpp_iFrame").css("width",rightOfContainer-rightOfEditor-25);
+var GreatCircle = {
+  /* great circle distance calculator from https://github.com/mwgg/GreatCircle/blob/master/GreatCircle.js
+   * usage: GreatCircle::distance(lat1,long1,lat2,long2,{unit}) where unit is one of KM, MI, NM, YD or FT */
+
+  validateRadius: function(unit) {
+    var r = {'KM': 6371.009, 'MI': 3958.761, 'NM': 3440.070, 'YD': 6967420, 'FT': 20902260};
+    if ( unit in r ) return r[unit];
+    else return unit;
+  },
+
+  distance: function(lat1, lon1, lat2, lon2, unit) {
+    if ( unit === undefined ) unit = 'KM';
+    var r = this.validateRadius(unit); 
+    lat1 *= Math.PI / 180;
+    lon1 *= Math.PI / 180;
+    lat2 *= Math.PI / 180;
+    lon2 *= Math.PI / 180;
+    var lonDelta = lon2 - lon1;
+    var a = Math.pow(Math.cos(lat2) * Math.sin(lonDelta) , 2) + Math.pow(Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(lonDelta) , 2);
+    var b = Math.sin(lat1) * Math.sin(lat2) + Math.cos(lat1) * Math.cos(lat2) * Math.cos(lonDelta);
+    var angle = Math.atan2(Math.sqrt(a) , b);
+
+    return angle * r;
   }
 }
