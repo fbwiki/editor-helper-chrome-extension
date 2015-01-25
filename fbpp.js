@@ -137,8 +137,25 @@ function showSimilarNearby(){
             uid: 177557992363854
 
          * use these to construct the HTML for the similar places.
-         * Remove anything over 100 miles away. Optionally order by distance
+         * Remove anything over 100 miles away. Also remove the current place.
+         * Optionally order by distance and/or by number of people who've been there.
+         *
+         * If no similar places are found try reducing the search to the first 2 words
+         * or even just the first word in the place name
+         *
+         * FB lays out the typeahead results in the following format:
+
+            <div class="PlacesTypeaheadViewList">
+              <ul class="noTrucating compact" id="typeahead_list_u_2v_a" role="listbox">
+                <li class="" title="Wompatuck State Park" aria-label="Wompatuck State Park" role="option">
+                  <img alt="" src="https://fbcdn-profile-a.akamaihd.net/hprofile-ak-xap1/v/t1.0-1/c8.0.50.50/p50x50/10175994_722621287782410_8414702203789626750_n.jpg?oh=a10cfb04d83e48d89c63a81ba29548a9&amp;oe=555D949D&amp;__gda__=1428526241_344430b5ebc1a56de6d5009ba4b331e2">
+                  <span class="text">Wompatuck State Park</span>
+                  <span class="subtext">204 Union St · Hingham, Massachusetts · 3,538 were here</span>
+                  </li>
+
+         * which we can mimick for consistency
          */
+
         $("#fbppContent").html(JSON.stringify(json));
 
       },
