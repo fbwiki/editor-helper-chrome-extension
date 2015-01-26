@@ -176,13 +176,13 @@ function showSimilarNearby(){
 
           entries.sort(compareDistance); // sort by distance
 
-          if ( entries.length > 15 ){ // take the first 15 elements or 100km, which ever comes last*
-            var match = null;
-            $.each(entries,function(i,entry){
-              if ( i > 14 && entry.distance > 100 && !match ) match = i;
+          var match = entries.length;
+          if ( entries.length > 0 ){
+            $.each(entries,function(i,entry){ // take the first 15 elements or 100km, which ever comes *first*
+              if ( ( i > 14 || entry.distance > 100 ) && match == entries.length ) match = i;
             })
           }
-          entries = entries.slice(0,i); 
+          entries = entries.slice(0,match); 
 
           var width = rightOfContainer-rightOfEditor-24;
           var height = editBox[0].getBoundingClientRect().height;
@@ -197,7 +197,7 @@ function showSimilarNearby(){
 
           html += '</ul></div></div></div></div></div>';
         }
-        if ( entries.length == 0) html = '<h1>No similar nearby entries!</h1>'
+        if ( entries.length == 0) html = '<h1 style="padding:30px">No similar nearby entries!</h1>'
         $("#fbppContent").html(html);
       },
       error: function(jqXHR,textStatus,err) { // always get a parseError but don't care
@@ -231,8 +231,8 @@ function modifyDOM(){ // modify the DOM to add the fbpp elements
   $("#fbppBox").prepend(fbppHTML); // the overall box
   $("#fbpp").append("<button id='fbpp_showMap' style="+fbppButtonStyle+">Map</button>");
   $("#fbpp").append("<button id='fbpp_showBing' style="+fbppButtonStyle+">Bing</button>");
-  $("#fbpp").append("<button id='fbpp_reportButton' style="+fbppButtonStyle+">Report</button>");
   $("#fbpp").append("<button id='fbpp_showSimilarNearby' style="+fbppButtonStyle+">Similar Nearby</button>");
+  $("#fbpp").append("<button id='fbpp_reportButton' style="+fbppButtonStyle+">Report</button>");
   $("#fbpp").append("<a id='fbpp_report' class='_54nc' href='#' rel='dialog' role='menuitem'></a>");
 }
 
