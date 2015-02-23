@@ -56,7 +56,7 @@ $(document).ready(function(){ // load the extension objects once the page has fi
         " " + addressParts[addressParts.length-1].trim());
       $("#fbpp_iFrame").attr('src',"https://www.bing.com/search?q="+pageName);
     }
-  })
+  });
 
   $("#fbpp_reportButton").click(function(){ // this will bring up the report dialog box
     var pageId = $("input[name=page_id]").attr("value");
@@ -64,24 +64,24 @@ $(document).ready(function(){ // load the extension objects once the page has fi
 
     $("#fbpp_report").attr('ajaxify',"/ajax/report.php?content_type=64&cid="+pageId+"&city_id="+cityId);
     $("#fbpp_report")[0].click();
-  })
+  });
 
   $("#places_editor_save").click(function(){
     showMap();
-  })
+  });
 
   $("#fbpp_showSimilarNearby").click(function(){
     mapButtons.css("display","none");
     showSimilarNearby();
-  })
+  });
 
   $("fbpp_reverseGeocode").click(function(){ // work in progress on reverse geocoding
-  })
+  });
 });
 
 function showMap(){
   mapButtons.css("display","block");
-  $("#fbppContent").html(map);
+  $("#fbppContent").html($(".fbAggregatedMapContainer").html());
 }
 
 function showSimilarNearby(){
@@ -172,7 +172,7 @@ function showSimilarNearby(){
           $.each(entries,function(i,entry){ // get the distance to each other node
             var distance = GreatCircle.distance(latitude,longitude,entry.latitude,entry.longitude,'KM');
             entries[i].distance = distance;
-          })
+          });
 
           entries.sort(compareDistance); // sort by distance
 
@@ -180,31 +180,31 @@ function showSimilarNearby(){
           if ( entries.length > 0 ){
             $.each(entries,function(i,entry){ // take the first 15 elements or 100km, which ever comes *first*
               if ( ( i > 14 || entry.distance > 100 ) && match == entries.length ) match = i;
-            })
+            });
           }
           entries = entries.slice(0,match); 
 
           var width = rightOfContainer-rightOfEditor-24;
           var height = editBox[0].getBoundingClientRect().height;
 
-          var html = '<div class="uiTypeaheadView PlacesTypeaheadView PlacesTypeaheadViewPopulated" style="position:relative; width:'+width+'px; max-height:'+height+'px;" id="u_9_d"><div class="uiScrollableArea nofade uiScrollableAreaWithShadow contentAfter" style="max-height:'+height+'px" id="u_9_e"><div class="uiScrollableAreaWrap scrollable" style="max-height:'+height+'px;" aria-label="Scrollable region" role="group" tabindex="-1"><div class="uiScrollableAreaBody" style="width:338px;"><div class="uiScrollableAreaContent"><div class="PlacesTypeaheadViewList"><ul class="noTrucating compact" id="typeahead_list_u_9_a" role="listbox">'
+          html = '<div class="uiTypeaheadView PlacesTypeaheadView PlacesTypeaheadViewPopulated" style="position:relative; width:'+width+'px; max-height:'+height+'px;" id="u_9_d"><div class="uiScrollableArea nofade uiScrollableAreaWithShadow contentAfter" style="max-height:'+height+'px" id="u_9_e"><div class="uiScrollableAreaWrap scrollable" style="max-height:'+height+'px;" aria-label="Scrollable region" role="group" tabindex="-1"><div class="uiScrollableAreaBody" style="width:338px;"><div class="uiScrollableAreaContent"><div class="PlacesTypeaheadViewList"><ul class="noTrucating compact" id="typeahead_list_u_9_a" role="listbox">';
           $.each(entries,function(index,entry){
-            html += '<li class="" title="'+entry.text+'" aria-label="'+entry.text+'" role="option">'
+            html += '<li class="" title="'+entry.text+'" aria-label="'+entry.text+'" role="option">';
             html += '<img src='+entry.photo+'>';
             html += '<span class="text">'+entry.text+'</span>';
             html += '<span class="subtext">'+entry.subtext+'</span></li>';
-          })
+          });
 
           html += '</ul></div></div></div></div></div>';
         }
-        if ( entries.length == 0) html = '<h1 style="padding:30px">No similar nearby entries!</h1>'
+        if ( entries.length === 0) html = '<h1 style="padding:30px">No similar nearby entries!</h1>';
         $("#fbppContent").html(html);
       },
       error: function(jqXHR,textStatus,err) { // always get a parseError but don't care
       }
     });
 
-  })
+  });
 }
 
 $(window).resize(function(){ // resize the fbpp box when the window resizes
@@ -240,7 +240,7 @@ function modifyDOM(){ // modify the DOM to add the fbpp elements
 // https://www.facebook.com/search/$PLACE_ID/places-near/str/$NAME/places-named/intersect
 
 function resizeElements(){ // handle resize events (the editor box has a fixed width, so use the rest of the page)
-  if ( editBox) {
+  if ( editBox && editBox.position ) {
     topOfEditor = editBox.position().top;
     rightOfEditor = editBox[0].getBoundingClientRect().right;
     rightOfContainer = container[0].getBoundingClientRect().right;
