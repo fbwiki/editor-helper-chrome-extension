@@ -6,13 +6,13 @@
   "description": "This extension enhances the productivity of the fb places editor.",
   "version": "0.0.2",
   "icons": { "128": "fbpp-128.png" },
-    
+
   "permissions": [
     "https://www.facebook.com/editor",
     "tabs",
     "storage"
   ],
- 
+
   "background": {
     "scripts": ["jquery.min.js","bg.js"],
     "persistent": false
@@ -22,5 +22,6 @@
     "default_title": "fb places pro",
     "default_icon": "fbpp-32.png",
     "default_popup": "fbpp.html"
-  }
+  },
+  "content_security_policy": "script-src 'self' https://ecn.dev.virtualearth.net https://dev.virtualearth.net; object-src 'self'"
 }

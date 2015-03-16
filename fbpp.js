@@ -23,6 +23,12 @@
 
 console.log("fbpp.js");
 
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+    console.log('Request: '+request+' sender: '+sender);
+  }
+);
+  
 // Initialize various variables
 var editBox = "";
 var container= "";
@@ -32,16 +38,20 @@ var fbppContent = "";
 var pageName = "";
 var pageAddress = "";
 
+//var mapControlUrl = "https://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0&s=1";
+//var mapControlUrl = "https://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0&amp;mkt=en-US&amp;onscriptload=__onMicrosoftMapsReady&amp;s=1";
+
 $(document).ready(function(){ // load the extension objects once the page has finished loading
-  // TBD this doesn't work when coming in from a notification about recent edits
   console.log("fbpp document ready!");
+
   findElements();
   modifyDOM();
   resizeElements();
 
   $("#fbpp_showMap").click(function(){ // show the map
     showMap();
-  })
+    sendMsg();
+  });
 
   $("#fbpp_showBing").click(function(){ // show the bing search, but include the city
     // TBD we can avoid loading bing repeatedly with the same string if we remember it
@@ -79,9 +89,35 @@ $(document).ready(function(){ // load the extension objects once the page has fi
   });
 });
 
+function sendMsg(){
+  // Attempting to setup comms with bg page
+  // from https://developer.chrome.com/extensions/messaging
+
+chrome.runtime.sendMessage({greeting: "hello"}, function(response) {
+  console.log('Response: '+response.map);
+});
+
+
+}
 function showMap(){
   mapButtons.css("display","block");
-  $("#fbppContent").html($(".fbAggregatedMapContainer").html());
+  $("#fbppContent").html(map.html());
+}
+
+function showBingMap(){
+  // this won't work as the extension doesn't have access to js objects defined in the page
+  var pageId = $("input[name=page_id]")[0].value;
+  var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){ // this call works *without* an access token!
+    var center = new Microsoft.Maps.Location(data.location.latitude,data.location.longitude);
+
+    var mapOptions = {
+      credentials: bingApiCreds,
+      center: center,
+      mapTypeId: Microsoft.Maps.MapTypeId.road,
+      zoom: 7 
+    };
+    var map = new Microsoft.Maps.Map($("#fbppContent"),mapOptions);
+  });
 }
 
 function showSimilarNearby(){
