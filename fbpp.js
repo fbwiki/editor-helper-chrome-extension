@@ -50,7 +50,6 @@ $(document).ready(function(){ // load the extension objects once the page has fi
 
   $("#fbpp_showMap").click(function(){ // show the map
     showMap();
-    sendMsg();
   });
 
   $("#fbpp_showBing").click(function(){ // show the bing search, but include the city
@@ -92,16 +91,20 @@ $(document).ready(function(){ // load the extension objects once the page has fi
 function sendMsg(){
   // Attempting to setup comms with bg page
   // from https://developer.chrome.com/extensions/messaging
-
-chrome.runtime.sendMessage({greeting: "hello"}, function(response) {
-  console.log('Response: '+response.map);
-});
-
-
+  chrome.runtime.sendMessage({greeting: "hello"}, function(response) {
+    console.log(response);
+    if ( chrome.runtime.lastError ) console.log( chrome.runtime.lastError );
+    return response;
+  });
 }
+
 function showMap(){
   mapButtons.css("display","block");
-  $("#fbppContent").html(map.html());
+  chrome.runtime.sendMessage({type: 'map'}, function(response) {
+    console.log(response);
+    if ( chrome.runtime.lastError ) console.log( chrome.runtime.lastError );
+    $(".MicrosoftMap").html(response.mapHTML);
+  });
 }
 
 function showBingMap(){

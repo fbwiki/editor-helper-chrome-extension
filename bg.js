@@ -1,3 +1,7 @@
+$.getScript("https://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0&s=1", function(){ });
+$.getScript("https://ecn.dev.virtualearth.net/mapcontrol/v7.0/7.0.20150304115921.67/js/en-us/veapicore.js",function(){ });
+$.getScript("https://ecn.dev.virtualearth.net/mapcontrol/v7.0/7.0.20150304115921.67/js/en-us/veapidelay.js",function(){ });
+
 chrome.runtime.onInstalled.addListener(function(details) { // when the extension is first installed
   localStorage.fbpp = JSON.stringify(true); // master on-off switch for the extension
 });
@@ -20,3 +24,41 @@ chrome.tabs.onUpdated.addListener(function(id, info, tab){ // Listen for any cha
     }
   }
 });
+
+var bingApiCreds = "AkF0mEyG789RQA6CcLimWZMzrDNF6MNSwRJOmNWb9gK_JGiwOBeMoQUoY1MFqksg";
+//var bingApiCreds = "AmRUB725HnS9MWyqAe-g28l2n-VjCkXhbhWyDUlYFgSaMSZ77pBEHAgAAzACvYxi";
+
+// listener for the content script, see https://developer.chrome.com/extensions/messaging
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+    if ( request.type == 'map'){
+      var mapHTML = loadMap(); // do something with the request
+      sendResponse({mapHTML: mapHTML}); // send the response
+    }
+  }
+);
+
+/* This function should take:
+ * 1) the size of the map div (width, height)
+ * 2) a list of including name, size (#checkins), and lat-longs
+ * We can assume that the first point is the "place" and that it
+ * needs to have a marker rather than a size
+ */
+function loadMap(){
+  document.open();
+  var mapDiv = document.getElementById("mapDiv");
+  if ( !mapDiv ){
+    mapDiv = document.createElement('div');
+    mapDiv.setAttribute('id','mapDiv');
+    mapDiv.setAttribute('style','width:400px; height:400px');
+  }
+  var mapOptions = {
+    credentials: bingApiCreds,
+    center: new Microsoft.Maps.Location(45.5, -122.5),
+    mapTypeId: Microsoft.Maps.MapTypeId.road,
+    zoom: 7
+  };
+  var map = new Microsoft.Maps.Map(mapDiv, mapOptions);
+  document.close();
+  return mapDiv.innerHTML;
+}

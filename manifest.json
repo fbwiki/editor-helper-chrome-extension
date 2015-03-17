@@ -21,7 +21,7 @@
   "page_action": {
     "default_title": "fb places pro",
     "default_icon": "fbpp-32.png",
-    "default_popup": "fbpp.html"
+    "default_popup": "popup.html"
   },
   "content_security_policy": "script-src 'self' https://ecn.dev.virtualearth.net https://dev.virtualearth.net; object-src 'self'"
 }
