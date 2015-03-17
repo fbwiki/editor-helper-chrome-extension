@@ -100,10 +100,23 @@ function sendMsg(){
 
 function showMap(){
   mapButtons.css("display","block");
-  chrome.runtime.sendMessage({type: 'map'}, function(response) {
-    console.log(response);
-    if ( chrome.runtime.lastError ) console.log( chrome.runtime.lastError );
-    $(".MicrosoftMap").html(response.mapHTML);
+  var pageId = $("input[name=page_id]")[0].value;
+  var mapNode = $(".MicrosoftMap");
+  var h = mapNode.height();
+  var w = mapNode.width();
+
+  var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){ // this call works *without* an access token!
+    var request = {
+      type: 'map',
+      latitude: data.location.latitude,
+      longitude: data.location.longitude,
+      height: h,
+      width: w
+    };
+    chrome.runtime.sendMessage(request, function(response) {
+      if ( chrome.runtime.lastError ) console.log(chrome.runtime.lastError);
+      else mapNode.html(response.mapHTML);
+    });
   });
 }
 

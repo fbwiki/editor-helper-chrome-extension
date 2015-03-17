@@ -32,7 +32,7 @@ var bingApiCreds = "AkF0mEyG789RQA6CcLimWZMzrDNF6MNSwRJOmNWb9gK_JGiwOBeMoQUoY1MF
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
     if ( request.type == 'map'){
-      var mapHTML = loadMap(); // do something with the request
+      var mapHTML = loadMap(request.latitude,request.longitude,request.height,request.width); // do something with the request
       sendResponse({mapHTML: mapHTML}); // send the response
     }
   }
@@ -44,17 +44,17 @@ chrome.runtime.onMessage.addListener(
  * We can assume that the first point is the "place" and that it
  * needs to have a marker rather than a size
  */
-function loadMap(){
+function loadMap(latitude,longitude,h,w){
   document.open();
   var mapDiv = document.getElementById("mapDiv");
   if ( !mapDiv ){
     mapDiv = document.createElement('div');
     mapDiv.setAttribute('id','mapDiv');
-    mapDiv.setAttribute('style','width:400px; height:400px');
+    mapDiv.setAttribute('style','height:'+h+'px; width:'+w+'px;');
   }
   var mapOptions = {
     credentials: bingApiCreds,
-    center: new Microsoft.Maps.Location(45.5, -122.5),
+    center: new Microsoft.Maps.Location(latitude, longitude),
     mapTypeId: Microsoft.Maps.MapTypeId.road,
     zoom: 7
   };
