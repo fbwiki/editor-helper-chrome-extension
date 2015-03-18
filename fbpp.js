@@ -21,72 +21,109 @@
  * See https://github.com/CombatChihuahua/fb-places-pro
  */
 
-console.log("fbpp.js");
+$(document).ready(function(){ fbpp.init(); }); // load the extension objects once the page has finished loading
+$(window).resize(function(){ fbpp.resize(); });
 
-chrome.runtime.onMessage.addListener(
-  function(request, sender, sendResponse) {
-    console.log('Request: '+request+' sender: '+sender);
-  }
-);
-  
-// Initialize various variables
-var editBox = "";
-var container= "";
-var map = "";
-var mapButtons = "";
-var fbppContent = "";
-var pageName = "";
-var pageAddress = "";
 
-//var mapControlUrl = "https://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0&s=1";
-//var mapControlUrl = "https://ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0&amp;mkt=en-US&amp;onscriptload=__onMicrosoftMapsReady&amp;s=1";
+var fbpp = function(){
+  var editBox, container, map, mapButtons, fbppContent, pageName, pageAddress; // define private variables
 
-$(document).ready(function(){ // load the extension objects once the page has finished loading
-  console.log("fbpp document ready!");
+  return {
 
-  findElements();
-  modifyDOM();
-  resizeElements();
+    init: function(){
+      console.log("fbpp document ready!");
+      editBox = $("._5w0h");
+      container= $("._4ph-");
+      map =  $(".fbAggregatedMapContainer");
+      mapButtons = $(".fbMapsButtonStack");
+      fbpp.modifyDOM();
+      fbpp.resize();
+    },
 
-  $("#fbpp_showMap").click(function(){ // show the map
-    showMap();
-  });
+    attachHandlers: function(){
+      $("fbpp_reverseGeocode").click(function(){ fbpp.reverseGeocode(); });
+      $("#fbpp_showBing").click(function(){ fbpp.search(); });
+      $("#fbpp_showMap").click(function(){ fbpp.showMap(); });
+      $("#fbpp_showSimilarNearby").click(function(){ fbpp.showSimilarNearby(); });
+      $("#places_editor_save").click(function(){ fbpp.showMap(); });
+      $("#fbpp_reportButton").click(function(){ fbpp.report(); });
+    },
 
-  $("#fbpp_showBing").click(function(){ // show the bing search, but include the city
-    // TBD we can avoid loading bing repeatedly with the same string if we remember it
-    // between invocations
-    mapButtons.css("display","none");
-    $("#fbppContent").html("<iframe id='fbpp_iFrame' frameborder='0'></iframe>");
-    $("#fbpp_iFrame").css("height",editBox[0].getBoundingClientRect().height-40);
-    $("#fbpp_iFrame").css("width",rightOfContainer-rightOfEditor-25);
-    var addressParts = $(".fwn.fcw").text().split("·");
-    if ( addressParts ){
-      var pageName = encodeURIComponent($("._4c0z").find("a").text().trim() +
-        " " + addressParts[addressParts.length-1].trim());
-      $("#fbpp_iFrame").attr('src',"https://www.bing.com/search?q="+pageName);
-    }
-  });
+    modifyDOM: function(){
+      var fbppMenuBar = $("#fbpp");
+      if (fbppMenuBar[0]) return;
 
-  $("#fbpp_reportButton").click(function(){ // this will bring up the report dialog box
-    var pageId = $("input[name=page_id]").attr("value");
-    var cityId = $("input[name=seed]").attr("value");
+      map.wrap("<div id='fbppContent'></div>"); // the content area for our new UI widget
+      $("#fbppContent").wrap("<div id='fbppBox'></div>");
+      var fbppDivStyle = "'background-color: rgb(55, 62, 77); color:#fff; width:100%; height:40px;'";
+      var fbppButtonStyle ="'font-size: 14px; background-color: rgb(55,62,77); color: #fff; border:0; padding-top: 12px; padding-left: 20px; outline: none;'";
+      var fbppHTML = "<div id='fbpp' style="+fbppDivStyle+"></div>";
 
-    $("#fbpp_report").attr('ajaxify',"/ajax/report.php?content_type=64&cid="+pageId+"&city_id="+cityId);
-    $("#fbpp_report")[0].click();
-  });
+      $("#fbppBox").prepend(fbppHTML); // the overall box
+      $("#fbpp").append("<button id='fbpp_showMap' style="+fbppButtonStyle+">Map</button>");
+      $("#fbpp").append("<button id='fbpp_showBing' style="+fbppButtonStyle+">Bing</button>");
+      $("#fbpp").append("<button id='fbpp_showSimilarNearby' style="+fbppButtonStyle+">Similar Nearby</button>");
+      $("#fbpp").append("<button id='fbpp_reportButton' style="+fbppButtonStyle+">Report</button>");
+      $("#fbpp").append("<a id='fbpp_report' class='_54nc' href='#' rel='dialog' role='menuitem'></a>");
+    },
 
-  $("#places_editor_save").click(function(){
-    showMap();
-  });
+    newPlace: function(){
+    },
+    report: function(){
+      var pageId = $("input[name=page_id]").attr("value");
+      var cityId = $("input[name=seed]").attr("value");
 
-  $("#fbpp_showSimilarNearby").click(function(){
-    mapButtons.css("display","none");
-    showSimilarNearby();
-  });
+      $("#fbpp_report").attr('ajaxify',"/ajax/report.php?content_type=64&cid="+pageId+"&city_id="+cityId);
+      $("#fbpp_report")[0].click();
+    },
 
-  $("fbpp_reverseGeocode").click(function(){ // work in progress on reverse geocoding
-  });
-});
+    resize: function(){
+      if ( editBox && editBox.position ) {
+        topOfEditor = editBox.position().top;
+        rightOfEditor = editBox[0].getBoundingClientRect().right;
+        rightOfContainer = container[0].getBoundingClientRect().right;
+        fbppBox=$("#fbppBox");
+
+        fbppBox.css("top",topOfEditor);
+        fbppBox.css("width",rightOfContainer-rightOfEditor-22);
+        fbppBox.css("left",rightOfEditor+10);
+        fbppBox.css("height",editBox[0].getBoundingClientRect().height);
+        fbppBox.css("position","absolute");
+
+        map.css("height",editBox[0].getBoundingClientRect().height-40);
+
+        mapButtons.css("top",topOfEditor+50);
+        mapButtons.css("left",rightOfEditor-30);
+      }
+    },
+
+    search: function(){
+      /* show the bing search including the city
+       * TBD we can avoid loading bing repeatedly with the same string if we remember it
+       * between invocations */
+
+      mapButtons.css("display","none");
+      $("#fbppContent").html("<iframe id='fbpp_iFrame' frameborder='0'></iframe>");
+      $("#fbpp_iFrame").css("height",editBox[0].getBoundingClientRect().height-40);
+      $("#fbpp_iFrame").css("width",rightOfContainer-rightOfEditor-25);
+      var addressParts = $(".fwn.fcw").text().split("·");
+      if ( addressParts ){
+        var pageName = encodeURIComponent($("._4c0z").find("a").text().trim() +
+          " " + addressParts[addressParts.length-1].trim());
+        $("#fbpp_iFrame").attr('src',"https://www.bing.com/search?q="+pageName);
+      }
+    },
+    showMap: function(){
+      mapButtons.css("display","block");
+      $("#fbppContent").html(map.html());
+   },
+    showSimilarNearby: function(){
+      mapButtons.css("display","none");
+      showSimilarNearby();
+    },
+  };
+}();
+
 
 function sendMsg(){
   // Attempting to setup comms with bg page
@@ -95,44 +132,6 @@ function sendMsg(){
     console.log(response);
     if ( chrome.runtime.lastError ) console.log( chrome.runtime.lastError );
     return response;
-  });
-}
-
-function showMap(){
-  mapButtons.css("display","block");
-  var pageId = $("input[name=page_id]")[0].value;
-  var mapNode = $(".MicrosoftMap");
-  var h = mapNode.height();
-  var w = mapNode.width();
-
-  var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){ // this call works *without* an access token!
-    var request = {
-      type: 'map',
-      latitude: data.location.latitude,
-      longitude: data.location.longitude,
-      height: h,
-      width: w
-    };
-    chrome.runtime.sendMessage(request, function(response) {
-      if ( chrome.runtime.lastError ) console.log(chrome.runtime.lastError);
-      else mapNode.html(response.mapHTML);
-    });
-  });
-}
-
-function showBingMap(){
-  // this won't work as the extension doesn't have access to js objects defined in the page
-  var pageId = $("input[name=page_id]")[0].value;
-  var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){ // this call works *without* an access token!
-    var center = new Microsoft.Maps.Location(data.location.latitude,data.location.longitude);
-
-    var mapOptions = {
-      credentials: bingApiCreds,
-      center: center,
-      mapTypeId: Microsoft.Maps.MapTypeId.road,
-      zoom: 7 
-    };
-    var map = new Microsoft.Maps.Map($("#fbppContent"),mapOptions);
   });
 }
 
@@ -259,57 +258,8 @@ function showSimilarNearby(){
   });
 }
 
-$(window).resize(function(){ // resize the fbpp box when the window resizes
-  resizeElements("fbpp document resize!");
-});
-
-function findElements(){ // these are used a lot
-  editBox = $("._5w0h");
-  container= $("._4ph-");
-  map =  $(".fbAggregatedMapContainer");
-  mapButtons = $(".fbMapsButtonStack");
-}
-
-function modifyDOM(){ // modify the DOM to add the fbpp elements
-  var fbppMenuBar = $("#fbpp");
-  if (fbppMenuBar[0]) return;
-
-  map.wrap("<div id='fbppContent'></div>"); // the content area for our new UI widget
-  $("#fbppContent").wrap("<div id='fbppBox'></div>");
-  var fbppDivStyle = "'background-color: rgb(55, 62, 77); color:#fff; width:100%; height:40px;'";
-  var fbppButtonStyle ="'font-size: 14px; background-color: rgb(55,62,77); color: #fff; border:0; padding-top: 12px; padding-left: 20px; outline: none;'";
-  var fbppHTML = "<div id='fbpp' style="+fbppDivStyle+"></div>";
-
-  $("#fbppBox").prepend(fbppHTML); // the overall box
-  $("#fbpp").append("<button id='fbpp_showMap' style="+fbppButtonStyle+">Map</button>");
-  $("#fbpp").append("<button id='fbpp_showBing' style="+fbppButtonStyle+">Bing</button>");
-  $("#fbpp").append("<button id='fbpp_showSimilarNearby' style="+fbppButtonStyle+">Similar Nearby</button>");
-  $("#fbpp").append("<button id='fbpp_reportButton' style="+fbppButtonStyle+">Report</button>");
-  $("#fbpp").append("<a id='fbpp_report' class='_54nc' href='#' rel='dialog' role='menuitem'></a>");
-}
-
 // pattern for finding nearby places:
 // https://www.facebook.com/search/$PLACE_ID/places-near/str/$NAME/places-named/intersect
-
-function resizeElements(){ // handle resize events (the editor box has a fixed width, so use the rest of the page)
-  if ( editBox && editBox.position ) {
-    topOfEditor = editBox.position().top;
-    rightOfEditor = editBox[0].getBoundingClientRect().right;
-    rightOfContainer = container[0].getBoundingClientRect().right;
-    fbppBox=$("#fbppBox");
-
-    fbppBox.css("top",topOfEditor);
-    fbppBox.css("width",rightOfContainer-rightOfEditor-22);
-    fbppBox.css("left",rightOfEditor+10);
-    fbppBox.css("height",editBox[0].getBoundingClientRect().height);
-    fbppBox.css("position","absolute");
-
-    map.css("height",editBox[0].getBoundingClientRect().height-40);
-
-    mapButtons.css("top",topOfEditor+50);
-    mapButtons.css("left",rightOfEditor-30);
-  }
-}
 
 var GreatCircle = {
   /* great circle distance calculator from https://github.com/mwgg/GreatCircle/blob/master/GreatCircle.js
@@ -334,10 +284,33 @@ var GreatCircle = {
     var angle = Math.atan2(Math.sqrt(a) , b);
     return angle * r;
   }
-}
+};
 
 function compareDistance(a,b){
   if ( a.distance < b.distance ) return -1;
   if ( a.distance > b.distance ) return +1;
   return 0;
+}
+
+function getMapFromBgScript(){ // this turned out not to work because bg script couldn't completely load the map
+
+  mapButtons.css("display","block");
+  var pageId = $("input[name=page_id]")[0].value;
+  var mapNode = $(".MicrosoftMap.MapTypeId_auto.medium");
+  var h = mapNode.height();
+  var w = mapNode.width();
+
+  var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){ // this call works *without* an access token!
+    var request = {
+      type: 'map',
+      latitude: data.location.latitude,
+      longitude: data.location.longitude,
+      height: h,
+      width: w
+    };
+    chrome.runtime.sendMessage(request, function(response) {
+      if ( chrome.runtime.lastError ) console.log(chrome.runtime.lastError);
+      else mapNode.html(response.mapHTML);
+    });
+  });
 }

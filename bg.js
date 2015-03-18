@@ -32,8 +32,11 @@ var bingApiCreds = "AkF0mEyG789RQA6CcLimWZMzrDNF6MNSwRJOmNWb9gK_JGiwOBeMoQUoY1MF
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
     if ( request.type == 'map'){
-      var mapHTML = loadMap(request.latitude,request.longitude,request.height,request.width); // do something with the request
-      sendResponse({mapHTML: mapHTML}); // send the response
+      loadMap(request.latitude,request.longitude,request.height,request.width); // do something with the request
+      window.setTimeout(function(){
+        var mapDiv = document.getElementById('mapDiv');
+        sendResponse({mapHTML: mapDiv.innerHTML}); // send the response
+      },1000);
     }
   }
 );
@@ -45,20 +48,23 @@ chrome.runtime.onMessage.addListener(
  * needs to have a marker rather than a size
  */
 function loadMap(latitude,longitude,h,w){
-  document.open();
-  var mapDiv = document.getElementById("mapDiv");
-  if ( !mapDiv ){
-    mapDiv = document.createElement('div');
-    mapDiv.setAttribute('id','mapDiv');
-    mapDiv.setAttribute('style','height:'+h+'px; width:'+w+'px;');
-  }
+  
+  // turns out we already have a document context here
+
+  // insert a div id=mapDiv
+
+  var mapDiv = document.createElement('div');
+  mapDiv.setAttribute('id','mapDiv');
+
   var mapOptions = {
     credentials: bingApiCreds,
     center: new Microsoft.Maps.Location(latitude, longitude),
-    mapTypeId: Microsoft.Maps.MapTypeId.road,
-    zoom: 7
+    mapTypeId: Microsoft.Maps.MapTypeId.auto,
+    height: h,
+    width: w,
+    showDashboard: true,
+    showMapTypeSelector: true,
+    showScalebar: true,
   };
   var map = new Microsoft.Maps.Map(mapDiv, mapOptions);
-  document.close();
-  return mapDiv.innerHTML;
 }
