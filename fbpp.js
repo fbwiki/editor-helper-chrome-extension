@@ -21,23 +21,23 @@
  * See https://github.com/CombatChihuahua/fb-places-pro
  */
 
-$(document).ready(function(){ fbpp.init(); }); // load the extension objects once the page has finished loading
-$(window).resize(function(){ fbpp.resize(); });
-
-
 var fbpp = function(){
-  var editBox, container, map, mapButtons, fbppContent, pageName, pageAddress; // define private variables
+  var initialized, editBox, container, map, mapButtons, fbppContent, pageName, pageAddress, previousPageName; // define private variables
 
   return {
 
     init: function(){
-      console.log("fbpp document ready!");
-      editBox = $("._5w0h");
-      container= $("._4ph-");
-      map =  $(".fbAggregatedMapContainer");
-      mapButtons = $(".fbMapsButtonStack");
-      fbpp.modifyDOM();
-      fbpp.resize();
+      if ( typeof initialized == 'undefined'){
+        initialized = true;
+        editBox = $("._5w0h");
+        container= $("._4ph-");
+        map =  $(".fbAggregatedMapContainer");
+        mapButtons = $(".fbMapsButtonStack");
+        fbpp.modifyDOM();
+        fbpp.attachHandlers();
+        fbpp.resize();
+        console.log("fbpp document ready!");
+      }
     },
 
     attachHandlers: function(){
@@ -45,8 +45,15 @@ var fbpp = function(){
       $("#fbpp_showBing").click(function(){ fbpp.search(); });
       $("#fbpp_showMap").click(function(){ fbpp.showMap(); });
       $("#fbpp_showSimilarNearby").click(function(){ fbpp.showSimilarNearby(); });
-      $("#places_editor_save").click(function(){ fbpp.showMap(); });
+      $("#places_editor_save").click(function(){ fbpp.next(); });
       $("#fbpp_reportButton").click(function(){ fbpp.report(); });
+    },
+
+    hideParts: function(){
+      map.hide();
+      mapButtons.hide();
+      $('#fbpp_iFrame').hide();
+      $('#fbppSimilar').hide();
     },
 
     modifyDOM: function(){
@@ -55,6 +62,13 @@ var fbpp = function(){
 
       map.wrap("<div id='fbppContent'></div>"); // the content area for our new UI widget
       $("#fbppContent").wrap("<div id='fbppBox'></div>");
+
+      $("#fbppContent").append("<iframe id='fbpp_iFrame' frameborder='0'></iframe>");
+      $('#fbpp_iFrame').hide();
+
+      $('#fbppContent').append("<div id='fbppSimilar'></div>");
+      $('#fbppSimilar').hide();
+
       var fbppDivStyle = "'background-color: rgb(55, 62, 77); color:#fff; width:100%; height:40px;'";
       var fbppButtonStyle ="'font-size: 14px; background-color: rgb(55,62,77); color: #fff; border:0; padding-top: 12px; padding-left: 20px; outline: none;'";
       var fbppHTML = "<div id='fbpp' style="+fbppDivStyle+"></div>";
@@ -67,7 +81,8 @@ var fbpp = function(){
       $("#fbpp").append("<a id='fbpp_report' class='_54nc' href='#' rel='dialog' role='menuitem'></a>");
     },
 
-    newPlace: function(){
+    next: function(){
+      fbpp.showMap();
     },
     report: function(){
       var pageId = $("input[name=page_id]").attr("value");
@@ -91,39 +106,44 @@ var fbpp = function(){
         fbppBox.css("position","absolute");
 
         map.css("height",editBox[0].getBoundingClientRect().height-40);
-
         mapButtons.css("top",topOfEditor+50);
         mapButtons.css("left",rightOfEditor-30);
+
+        $("#fbpp_iFrame").css("height",editBox[0].getBoundingClientRect().height-40);
+        $("#fbpp_iFrame").css("width",rightOfContainer-rightOfEditor-25);
       }
     },
 
-    search: function(){
-      /* show the bing search including the city
-       * TBD we can avoid loading bing repeatedly with the same string if we remember it
-       * between invocations */
+    search: function(){ // show the bing search including the city
+      fbpp.hideParts();
+      $('#fbpp_iFrame').show();
 
-      mapButtons.css("display","none");
-      $("#fbppContent").html("<iframe id='fbpp_iFrame' frameborder='0'></iframe>");
-      $("#fbpp_iFrame").css("height",editBox[0].getBoundingClientRect().height-40);
-      $("#fbpp_iFrame").css("width",rightOfContainer-rightOfEditor-25);
-      var addressParts = $(".fwn.fcw").text().split("·");
+      var addressParts = $(".fwn.fcw")[0].textContent.split("·");
       if ( addressParts ){
         var pageName = encodeURIComponent($("._4c0z").find("a").text().trim() +
           " " + addressParts[addressParts.length-1].trim());
-        $("#fbpp_iFrame").attr('src',"https://www.bing.com/search?q="+pageName);
+        if ( pageName != previousPageName ){
+          $("#fbpp_iFrame").attr('src',"https://www.bing.com/search?q="+pageName);
+          previousPageName = pageName;
+        }
       }
     },
+
     showMap: function(){
-      mapButtons.css("display","block");
-      $("#fbppContent").html(map.html());
-   },
+      fbpp.hideParts();
+      map.show();
+      mapButtons.show();
+    },
+
     showSimilarNearby: function(){
-      mapButtons.css("display","none");
+      fbpp.hideParts();
       showSimilarNearby();
     },
   };
 }();
 
+$(document).ready(function(){ fbpp.init(); }); // load the extension objects once the page has finished loading
+$(window).resize(function(){ fbpp.resize(); }); // react to window resize events
 
 function sendMsg(){
   // Attempting to setup comms with bg page
@@ -235,8 +255,8 @@ function showSimilarNearby(){
           }
           entries = entries.slice(0,match); 
 
-          var width = rightOfContainer-rightOfEditor-24;
-          var height = editBox[0].getBoundingClientRect().height;
+          var height = $("._5w0h")[0].getBoundingClientRect().height-40;
+          var width = $('#fbppBox')[0].getBoundingClientRect().width-2;
 
           html = '<div class="uiTypeaheadView PlacesTypeaheadView PlacesTypeaheadViewPopulated" style="position:relative; width:'+width+'px; max-height:'+height+'px;" id="u_9_d"><div class="uiScrollableArea nofade uiScrollableAreaWithShadow contentAfter" style="max-height:'+height+'px" id="u_9_e"><div class="uiScrollableAreaWrap scrollable" style="max-height:'+height+'px;" aria-label="Scrollable region" role="group" tabindex="-1"><div class="uiScrollableAreaBody" style="width:338px;"><div class="uiScrollableAreaContent"><div class="PlacesTypeaheadViewList"><ul class="noTrucating compact" id="typeahead_list_u_9_a" role="listbox">';
           $.each(entries,function(index,entry){
@@ -249,7 +269,8 @@ function showSimilarNearby(){
           html += '</ul></div></div></div></div></div>';
         }
         if ( entries.length === 0) html = '<h1 style="padding:30px">No similar nearby entries!</h1>';
-        $("#fbppContent").html(html);
+        $('#fbppSimilar').html(html);
+        $('#fbppSimilar').show();
       },
       error: function(jqXHR,textStatus,err) { // always get a parseError but don't care
       }
