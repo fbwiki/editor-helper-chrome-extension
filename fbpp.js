@@ -86,24 +86,26 @@ var fbpp = function(){
 
     newPlace: function(){
       var newPageId = $("input[name=page_id]")[0].value;
-      pageId = newPageId;
-      var cityId = $("input[name=seed]").attr('value');
-      var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){ // this call works *without* an access token!
-        var latitude = data.location.latitude;
-        var longitude = data.location.longitude;
-        var pageName = data.name;
-        if ( $('#checkinCounter').length === 0 ){
-          $("._h5k").append('<div id="checkinCounter"' +
-            ' style="font-weight:normal; color:white; top:11px; right:12px; position:absolute"></div>');
-        }
-        $('#checkinCounter').text(data.checkins+' checkins');
-        console.log("New place, name: "+pageName+" id: "+pageId+" cityId: "+cityId+" lat: "+latitude+" long: "+longitude);
-      });
+      if ( newPageId != pageId ){
+        pageId = newPageId;
+        var cityId = $("input[name=seed]").attr('value');
+        var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){ // this call works *without* an access token!
+          var latitude = data.location.latitude;
+          var longitude = data.location.longitude;
+          var pageName = data.name;
+          if ( $('#checkinCounter').length === 0 ){
+            $("._h5k").append('<div id="checkinCounter"' +
+              ' style="font-weight:normal; color:white; top:11px; right:12px; position:absolute"></div>');
+          }
+          $('#checkinCounter').html('<i style="width: 15px; height: 16px; background-position: -17px -462px; display: inline-block; left: -18px; position: absolute; background-image: url(https://fbstatic-a.akamaihd.net/rsrc.php/v2/yU/r/rYmSLuPcGQQ.png)"></i>'+data.checkins);
+          console.log("New place, name: "+pageName+" id: "+pageId+" cityId: "+cityId+" lat: "+latitude+" long: "+longitude);
+        });
+      }
     },
 
     next: function(){
       fbpp.showMap();
-      setTimeout(fbpp.newPlace,1000); // couldn't get mutation observers to work right :(
+      setTimeout(function(){fbpp.newPlace();},2000); // couldn't get mutation observers to work right :(
     },
 
     report: function(){
