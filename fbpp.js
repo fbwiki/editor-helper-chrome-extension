@@ -22,7 +22,7 @@
  */
 
 var fbpp = function(){
-  var initialized, editBox, container, map, mapButtons, fbppContent, pageName, pageAddress, previousPageName; // define private variables
+  var initialized, editBox, container, map, mapButtons, fbppContent, pageId, pageName, pageAddress, previousPageName; // define private variables
 
   return {
 
@@ -31,6 +31,8 @@ var fbpp = function(){
         initialized = true;
         editBox = $("._5w0h");
         container= $("._4ph-");
+        pageId = null;
+        fbpp.newPlace();
         map =  $(".fbAggregatedMapContainer");
         mapButtons = $(".fbMapsButtonStack");
         fbpp.modifyDOM();
@@ -81,9 +83,25 @@ var fbpp = function(){
       $("#fbpp").append("<a id='fbpp_report' class='_54nc' href='#' rel='dialog' role='menuitem'></a>");
     },
 
+    newPlace: function(){
+      var newPageId = $("input[name=page_id]")[0].value;
+      if ( newPageId != pageId ){
+        pageId = newPageId;
+        var cityId = $("input[name=seed]").attr('value');
+        var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){ // this call works *without* an access token!
+          var latitude = data.location.latitude;
+          var longitude = data.location.longitude;
+          var pageName = data.name;
+        console.log("New place, name: "+pageName+" id: "+pageId+" cityId: "+cityId+" lat: "+latitude+" long: "+longitude);
+        });
+      }
+    },
+
     next: function(){
       fbpp.showMap();
+      setTimeout(fbpp.newPlace,1000); // couldn't get mutation observers to work right :(
     },
+
     report: function(){
       var pageId = $("input[name=page_id]").attr("value");
       var cityId = $("input[name=seed]").attr("value");
@@ -182,7 +200,7 @@ function showSimilarNearby(){
   var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){ // this call works *without* an access token!
     var latitude = data.location.latitude;
     var longitude = data.location.longitude;
-    var pageName = encodeURIComponent($("._4c0z").find("a").text().trim().split(" ").slice(0,3).join(" ")); //first 3 words of place name
+    var pageName = encodeURIComponent(data.name.split(" ").slice(0,3).join(" ")); //first 3 words of place name
     var url = "https://www.facebook.com/ajax/places/typeahead?value=" + 
       pageName+"&latitude="+latitude+"&longitude="+longitude+"&existing_ids="+pageId+"&city_id="+cityId+'&city_bias=false' +
       "&include_address=2&include_subtext=true&exact_match=false&use_unicorn=true&allow_places=true&allow_cities=true&render_map=true&limit=30&proximity_boost=true&map_height=150&map_width=348&ref=PlaceReportDialog%3A%3ArenderDuplicatePlaceTypeahead&__a=1";
@@ -335,3 +353,4 @@ function getMapFromBgScript(){ // this turned out not to work because bg script 
     });
   });
 }
+
