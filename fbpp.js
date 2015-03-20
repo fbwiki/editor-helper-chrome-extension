@@ -81,20 +81,24 @@ var fbpp = function(){
       $("#fbpp").append("<button id='fbpp_showSimilarNearby' style="+fbppButtonStyle+">Similar Nearby</button>");
       $("#fbpp").append("<button id='fbpp_reportButton' style="+fbppButtonStyle+">Report</button>");
       $("#fbpp").append("<a id='fbpp_report' class='_54nc' href='#' rel='dialog' role='menuitem'></a>");
+
     },
 
     newPlace: function(){
       var newPageId = $("input[name=page_id]")[0].value;
-      if ( newPageId != pageId ){
-        pageId = newPageId;
-        var cityId = $("input[name=seed]").attr('value');
-        var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){ // this call works *without* an access token!
-          var latitude = data.location.latitude;
-          var longitude = data.location.longitude;
-          var pageName = data.name;
+      pageId = newPageId;
+      var cityId = $("input[name=seed]").attr('value');
+      var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){ // this call works *without* an access token!
+        var latitude = data.location.latitude;
+        var longitude = data.location.longitude;
+        var pageName = data.name;
+        if ( $('#checkinCounter').length === 0 ){
+          $("._h5k").append('<div id="checkinCounter"' +
+            ' style="font-weight:normal; color:white; top:11px; right:12px; position:absolute"></div>');
+        }
+        $('#checkinCounter').text(data.checkins+' checkins');
         console.log("New place, name: "+pageName+" id: "+pageId+" cityId: "+cityId+" lat: "+latitude+" long: "+longitude);
-        });
-      }
+      });
     },
 
     next: function(){
@@ -155,7 +159,7 @@ var fbpp = function(){
 
     showSimilarNearby: function(){
       fbpp.hideParts();
-      showSimilarNearby();
+      showSimilarNearby(pageId);
     },
   };
 }();
@@ -173,7 +177,7 @@ function sendMsg(){
   });
 }
 
-function showSimilarNearby(){
+function showSimilarNearby(pageId){
    /* Tried to use the graph API but it doesn't yet support "graph search" with
    * fuzzy name matching. Basically couldn't be done.
    *
@@ -195,7 +199,6 @@ function showSimilarNearby(){
    * to remove the ones >~100 miles away. Need the formula for great circle
    * distance between two lat-long coordinates */
 
-  var pageId = $("input[name=page_id]")[0].value;
   var cityId = $("input[name=seed]").attr('value');
   var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){ // this call works *without* an access token!
     var latitude = data.location.latitude;
