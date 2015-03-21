@@ -22,7 +22,7 @@
  */
 
 var fbpp = function(){
-  var initialized, editBox, container, map, mapButtons, fbppContent, pageId, pageName, pageAddress, previousPageName, latitude, longitude; // define private variables
+  var initialized, editBox, container, map, mapButtons, fbppContentRect, pageId, pageName, pageAddress, previousPageName, latitude, longitude; // define private variables
 
   return {
 
@@ -52,7 +52,7 @@ var fbpp = function(){
     },
 
     get: function(){
-      return { pageName: pageName, pageId: pageId };
+      return { pageName: pageName, pageId: pageId, rect: fbppContentRect };
     },
 
     hideParts: function(){
@@ -137,8 +137,10 @@ var fbpp = function(){
         mapButtons.css("top",topOfEditor+50);
         mapButtons.css("left",rightOfEditor-30);
 
-        $("#fbpp_iFrame").css("height",editBox[0].getBoundingClientRect().height-40);
-        $("#fbpp_iFrame").css("width",rightOfContainer-rightOfEditor-25);
+        fbppContentRect = $('#fbppContent')[0].getBoundingClientRect();
+
+        $("#fbpp_iFrame").css("height",fbppContentRect.height);
+        $("#fbpp_iFrame").css("width",fbppContentRect.width);
       }
     },
 
@@ -268,10 +270,12 @@ function showSimilarNearby(pageId){
             else i++;
           }
 
+          pageAttributes = fbpp.get();
+
           $.each(entries,function(i,entry){ // get the distance to each other node
             var radiusKM = GreatCircle.distance(latitude,longitude,entry.latitude,entry.longitude,'KM');
             entries[i].radiusKM = radiusKM;
-            entries[i].Levenshtein = LevenshteinDistance(fbpp.get().pageName,entries[i].text);
+            entries[i].Levenshtein = LevenshteinDistance(pageAttributes.pageName,entries[i].text);
             entries[i].checkins = entries[i].subtext.lastIndexOf("·") > -1 ? Number(entries[i].subtext.substring(entries[i].subtext.lastIndexOf("·")).split(" ")[1].replace(',','').replace('.','')) : 0;
             entries[i].checkins = Math.max(entries[i].checkins,1); // avoid div by zero
             entries[i].distance = Math.pow( entries[i].radiusKM + 0.01, 1.5) * ( entries[i].Levenshtein + 0.1) / Math.log10( entries[i].checkins ); // compound distance
@@ -287,8 +291,8 @@ function showSimilarNearby(pageId){
           entries.sort(compareDistance); // sort by distance
           entries = entries.slice(0,15); // limit to the first 15 results
 
-          var height = $("._5w0h")[0].getBoundingClientRect().height-40;
-          var width = $('#fbppBox')[0].getBoundingClientRect().width-2;
+          var height = pageAttributes.rect.height;
+          var width = pageAttributes.rect.width;
 
           html = '<div class="uiTypeaheadView PlacesTypeaheadView PlacesTypeaheadViewPopulated" style="position:relative; width:'+width+'px; max-height:'+height+'px;" id="u_9_d"><div class="uiScrollableArea nofade uiScrollableAreaWithShadow contentAfter" style="max-height:'+height+'px" id="u_9_e"><div class="uiScrollableAreaWrap scrollable" style="max-height:'+height+'px;" aria-label="Scrollable region" role="group" tabindex="-1"><div class="uiScrollableAreaBody" style="width:'+width+'px;"><div class="uiScrollableAreaContent"><div class="PlacesTypeaheadViewList"><ul class="noTrucating compact" id="typeahead_list_u_9_a" role="listbox">';
           $.each(entries,function(index,entry){
