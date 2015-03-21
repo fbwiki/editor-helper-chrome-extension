@@ -146,8 +146,9 @@ var fbpp = function(){
       fbpp.hideParts();
       $('#fbpp_iFrame').show();
 
-      var addressParts = $(".fwn.fcw")[0].textContent.split("·");
+      var addressParts = $(".fwn.fcw")[0];
       if ( addressParts ){
+        addressParts = addressParts.textContent.split("·");
         var pageName = encodeURIComponent($("._4c0z").find("a").text().trim() +
           " " + addressParts[addressParts.length-1].trim());
         if ( pageName != previousPageName ){
@@ -273,7 +274,7 @@ function showSimilarNearby(pageId){
             entries[i].Levenshtein = LevenshteinDistance(fbpp.get().pageName,entries[i].text);
             entries[i].checkins = entries[i].subtext.lastIndexOf("·") > -1 ? Number(entries[i].subtext.substring(entries[i].subtext.lastIndexOf("·")).split(" ")[1].replace(',','').replace('.','')) : 0;
             entries[i].checkins = Math.max(entries[i].checkins,1); // avoid div by zero
-            entries[i].distance = ( entries[i].radiusKM + 0.01 ) * ( entries[i].Levenshtein + 0.1) / Math.log10( entries[i].checkins ); // compound distance
+            entries[i].distance = Math.pow( entries[i].radiusKM + 0.01, 1.5) * ( entries[i].Levenshtein + 0.1) / Math.log10( entries[i].checkins ); // compound distance
             console.log(entries[i].text+' '+entries[i].subtext+' Radius: '+entries[i].radiusKM+' Levenshtein: '+entries[i].Levenshtein+' Checkins: '+entries[i].checkins+' Distance: '+entries[i].distance);
           });
 
@@ -307,6 +308,10 @@ function showSimilarNearby(pageId){
       }
     });
 
+  }).fail(function(){
+    html = '<h1 style="padding:30px">Error in facebook graph api!</h1>';
+      $('#fbppSimilar').html(html);
+      $('#fbppSimilar').show();
   });
 }
 
