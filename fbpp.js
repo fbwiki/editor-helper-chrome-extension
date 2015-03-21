@@ -22,7 +22,7 @@
  */
 
 var fbpp = function(){
-  var initialized, editBox, container, map, mapButtons, fbppContent, pageId, pageName, pageAddress, previousPageName; // define private variables
+  var initialized, editBox, container, map, mapButtons, fbppContent, pageId, pageName, pageAddress, previousPageName, latitude, longitude; // define private variables
 
   return {
 
@@ -49,6 +49,10 @@ var fbpp = function(){
       $("#fbpp_showSimilarNearby").click(function(){ fbpp.showSimilarNearby(); });
       $("#places_editor_save").click(function(){ fbpp.next(); });
       $("#fbpp_reportButton").click(function(){ fbpp.report(); });
+    },
+
+    get: function(){
+      return { pageName: pageName, pageId: pageId };
     },
 
     hideParts: function(){
@@ -90,14 +94,14 @@ var fbpp = function(){
         pageId = newPageId;
         var cityId = $("input[name=seed]").attr('value');
         var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){ // this call works *without* an access token!
-          var latitude = data.location.latitude;
-          var longitude = data.location.longitude;
-          var pageName = data.name;
+          latitude = data.location.latitude;
+          longitude = data.location.longitude;
+          pageName = data.name;
           if ( $('#checkinCounter').length === 0 ){
             $("._h5k").append('<div id="checkinCounter"' +
               ' style="font-weight:normal; color:white; top:11px; right:12px; position:absolute"></div>');
           }
-          $('#checkinCounter').html('<i style="width: 15px; height: 16px; background-position: -17px -462px; display: inline-block; left: -18px; position: absolute; background-image: url(https://fbstatic-a.akamaihd.net/rsrc.php/v2/yU/r/rYmSLuPcGQQ.png)"></i>'+data.checkins);
+          $('#checkinCounter').html('<i style="width: 16px; height: 17px; background-position: -17px -462px; display: inline-block; left: -19px; position: absolute; background-image: url(https://fbstatic-a.akamaihd.net/rsrc.php/v2/yU/r/rYmSLuPcGQQ.png)"></i>'+data.checkins);
           console.log("New place, name: "+pageName+" id: "+pageId+" cityId: "+cityId+" lat: "+latitude+" long: "+longitude);
         });
       }
@@ -264,29 +268,33 @@ function showSimilarNearby(pageId){
           }
 
           $.each(entries,function(i,entry){ // get the distance to each other node
-            var distance = GreatCircle.distance(latitude,longitude,entry.latitude,entry.longitude,'KM');
-            entries[i].distance = distance;
+            var radiusKM = GreatCircle.distance(latitude,longitude,entry.latitude,entry.longitude,'KM');
+            entries[i].radiusKM = radiusKM;
+            entries[i].Levenshtein = LevenshteinDistance(fbpp.get().pageName,entries[i].text);
+            entries[i].checkins = entries[i].subtext.lastIndexOf("·") > -1 ? Number(entries[i].subtext.substring(entries[i].subtext.lastIndexOf("·")).split(" ")[1].replace(',','').replace('.','')) : 0;
+            entries[i].checkins = Math.max(entries[i].checkins,1); // avoid div by zero
+            entries[i].distance = ( entries[i].radiusKM + 0.01 ) * ( entries[i].Levenshtein + 0.1) / Math.log10( entries[i].checkins ); // compound distance
+            console.log(entries[i].text+' '+entries[i].subtext+' Radius: '+entries[i].radiusKM+' Levenshtein: '+entries[i].Levenshtein+' Checkins: '+entries[i].checkins+' Distance: '+entries[i].distance);
           });
 
-          entries.sort(compareDistance); // sort by distance
-
-          var match = entries.length;
-          if ( entries.length > 0 ){
-            $.each(entries,function(i,entry){ // take the first 15 elements or 100km, which ever comes *first*
-              if ( ( i > 14 || entry.distance > 100 ) && match == entries.length ) match = i;
-            });
+          i = 0;
+          while (i < entries.length ){
+            if ( entries[i].radiusKM > 100 ) entries.splice(i,1); // eliminate any entries over 100 km away
+            else i++;
           }
-          entries = entries.slice(0,match); 
+
+          entries.sort(compareDistance); // sort by distance
+          entries = entries.slice(0,15); // limit to the first 15 results
 
           var height = $("._5w0h")[0].getBoundingClientRect().height-40;
           var width = $('#fbppBox')[0].getBoundingClientRect().width-2;
 
-          html = '<div class="uiTypeaheadView PlacesTypeaheadView PlacesTypeaheadViewPopulated" style="position:relative; width:'+width+'px; max-height:'+height+'px;" id="u_9_d"><div class="uiScrollableArea nofade uiScrollableAreaWithShadow contentAfter" style="max-height:'+height+'px" id="u_9_e"><div class="uiScrollableAreaWrap scrollable" style="max-height:'+height+'px;" aria-label="Scrollable region" role="group" tabindex="-1"><div class="uiScrollableAreaBody" style="width:338px;"><div class="uiScrollableAreaContent"><div class="PlacesTypeaheadViewList"><ul class="noTrucating compact" id="typeahead_list_u_9_a" role="listbox">';
+          html = '<div class="uiTypeaheadView PlacesTypeaheadView PlacesTypeaheadViewPopulated" style="position:relative; width:'+width+'px; max-height:'+height+'px;" id="u_9_d"><div class="uiScrollableArea nofade uiScrollableAreaWithShadow contentAfter" style="max-height:'+height+'px" id="u_9_e"><div class="uiScrollableAreaWrap scrollable" style="max-height:'+height+'px;" aria-label="Scrollable region" role="group" tabindex="-1"><div class="uiScrollableAreaBody" style="width:'+width+'px;"><div class="uiScrollableAreaContent"><div class="PlacesTypeaheadViewList"><ul class="noTrucating compact" id="typeahead_list_u_9_a" role="listbox">';
           $.each(entries,function(index,entry){
             html += '<li class="" title="'+entry.text+'" aria-label="'+entry.text+'" role="option">';
             html += '<img src='+entry.photo+'>';
             html += '<span class="text">'+entry.text+'</span>';
-            html += '<span class="subtext">'+entry.subtext+'</span></li>';
+            html += '<span>'+entry.subtext+'</span></li>';
           });
 
           html += '</ul></div></div></div></div></div>';
@@ -359,3 +367,48 @@ function getMapFromBgScript(){ // this turned out not to work because bg script 
   });
 }
 
+
+/*
+Levenshtein.js - https://gist.github.com/andrei-m/982927
+Copyright (c) 2011 Andrei Mackenzie
+
+Compute the Levenshtein distance between two strings
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+ 
+function LevenshteinDistance(a, b){
+  if(a.length === 0) return b.length; 
+  if(b.length === 0) return a.length; 
+ 
+  var matrix = [];
+ 
+  // increment along the first column of each row
+  var i;
+  for(i = 0; i <= b.length; i++){
+    matrix[i] = [i];
+  }
+
+  // increment each column in the first row
+  var j;
+  for(j = 0; j <= a.length; j++){
+    matrix[0][j] = j;
+  }
+
+  // Fill in the rest of the matrix
+  for(i = 1; i <= b.length; i++){
+    for(j = 1; j <= a.length; j++){
+      if(b.charAt(i-1) == a.charAt(j-1)){
+        matrix[i][j] = matrix[i-1][j-1];
+      } else {
+        matrix[i][j] = Math.min(matrix[i-1][j-1] + 1, // substitution
+                                Math.min(matrix[i][j-1] + 1, // insertion
+                                         matrix[i-1][j] + 1)); // deletion
+      }
+    }
+  }
+
+  return matrix[b.length][a.length];
+}
