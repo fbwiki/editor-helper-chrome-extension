@@ -274,12 +274,12 @@ function showSimilarNearby(pageId){
 
           $.each(entries,function(i,entry){ // get the distance to each other node
             var radiusKM = GreatCircle.distance(latitude,longitude,entry.latitude,entry.longitude,'KM');
-            entries[i].radiusKM = radiusKM;
-            entries[i].Levenshtein = LevenshteinDistance(pageAttributes.pageName,entries[i].text);
-            entries[i].checkins = entries[i].subtext.lastIndexOf("·") > -1 ? Number(entries[i].subtext.substring(entries[i].subtext.lastIndexOf("·")).split(" ")[1].replace(',','').replace('.','')) : 0;
-            entries[i].checkins = Math.max(entries[i].checkins,1); // avoid div by zero
-            entries[i].distance = Math.pow( entries[i].radiusKM + 0.01, 1.5) * ( entries[i].Levenshtein + 0.1) / Math.log10( entries[i].checkins ); // compound distance
-            console.log(entries[i].text+' '+entries[i].subtext+' Radius: '+entries[i].radiusKM+' Levenshtein: '+entries[i].Levenshtein+' Checkins: '+entries[i].checkins+' Distance: '+entries[i].distance);
+            entry.radiusKM = radiusKM;
+            entry.Levenshtein = LevenshteinDistance(pageAttributes.pageName,entry.text);
+            entry.checkins = entry.subtext.lastIndexOf("·") > -1 ? Number(entry.subtext.substring(entry.subtext.lastIndexOf("·")).split(" ")[1].replace(',','').replace('.','')) : 0;
+            if ( entry.checkins === 0 ) entry.checkins = 1; // avoid div by zero
+            entry.distance = ( Math.pow( entry.radiusKM + 0.01, 1.5) * ( entry.Levenshtein + 0.1) ) / Math.log10( entry.checkins ); // compound distance
+            console.log(entry.text+' '+entry.subtext+' Radius: '+entry.radiusKM+' Levenshtein: '+entry.Levenshtein+' Checkins: '+entry.checkins+' Distance: '+entry.distance);
           });
 
           i = 0;
