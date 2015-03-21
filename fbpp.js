@@ -22,7 +22,7 @@
  */
 
 var fbpp = function(){
-  var initialized, editBox, container, map, mapButtons, fbppContentRect, pageId, pageName, pageAddress, previousPageName, latitude, longitude; // define private variables
+  var initialized, editBox, container, map, mapButtons, fbppContentRect, pageId, cityId, pageName, pageAddress, previousPageName, latitude, longitude; // define private variables
 
   return {
 
@@ -52,7 +52,7 @@ var fbpp = function(){
     },
 
     get: function(){
-      return { pageName: pageName, pageId: pageId, rect: fbppContentRect };
+      return { pageName: pageName, pageId: pageId, cityId: cityId, latitude: latitude, longitude: longitude, rect: fbppContentRect };
     },
 
     hideParts: function(){
@@ -92,7 +92,7 @@ var fbpp = function(){
       var newPageId = $("input[name=page_id]")[0].value;
       if ( newPageId != pageId ){
         pageId = newPageId;
-        var cityId = $("input[name=seed]").attr('value');
+        cityId = $("input[name=seed]").attr('value');
         var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){ // this call works *without* an access token!
           latitude = data.location.latitude;
           longitude = data.location.longitude;
@@ -168,7 +168,7 @@ var fbpp = function(){
 
     showSimilarNearby: function(){
       fbpp.hideParts();
-      showSimilarNearby(pageId);
+      showSimilarNearby(fbpp.get());
     },
   };
 }();
@@ -186,7 +186,7 @@ function sendMsg(){
   });
 }
 
-function showSimilarNearby(pageId){
+function showSimilarNearby(pageAttributes){
    /* Tried to use the graph API but it doesn't yet support "graph search" with
    * fuzzy name matching. Basically couldn't be done.
    *
@@ -208,114 +208,109 @@ function showSimilarNearby(pageId){
    * to remove the ones >~100 miles away. Need the formula for great circle
    * distance between two lat-long coordinates */
 
-  var cityId = $("input[name=seed]").attr('value');
-  var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){ // this call works *without* an access token!
-    var latitude = data.location.latitude;
-    var longitude = data.location.longitude;
-    var pageName = encodeURIComponent(data.name.split(" ").slice(0,3).join(" ")); //first 3 words of place name
-    var url = "https://www.facebook.com/ajax/places/typeahead?value=" + 
-      pageName+"&latitude="+latitude+"&longitude="+longitude+"&existing_ids="+pageId+"&city_id="+cityId+'&city_bias=false' +
-      "&include_address=2&include_subtext=true&exact_match=false&use_unicorn=true&allow_places=true&allow_cities=true&render_map=true&limit=30&proximity_boost=true&map_height=150&map_width=348&ref=PlaceReportDialog%3A%3ArenderDuplicatePlaceTypeahead&__a=1";
+  var pageId = pageAttributes.pageId;
+  var cityId = pageAttributes.cityId;
+  var latitude = pageAttributes.latitude;
+  var longitude = pageAttributes.longitude;
+  var pageName = encodeURIComponent(pageAttributes.pageName.split(" ").slice(0,3).join(" ")); //first 3 words of place name
+
+  var url = "https://www.facebook.com/ajax/places/typeahead?value=" + 
+    pageName+"&latitude="+latitude+"&longitude="+longitude+"&existing_ids="+pageId+"&city_id="+cityId+'&city_bias=false' +
+    "&include_address=2&include_subtext=true&exact_match=false&use_unicorn=true&allow_places=true&allow_cities=true&render_map=true&limit=30&proximity_boost=true&map_height=150&map_width=348&ref=PlaceReportDialog%3A%3ArenderDuplicatePlaceTypeahead&__a=1";
 
 
-    $.ajax({url: url, headers: {method: "GET", scheme: "https", accept: "*/*",
-      version: "HTTP/1.1", 'accept-language': "en-US,en;q=0.8,fr;q=0.6",
-      cache: true, processData: false},
-      complete: function(xhr,status){
-        var data = xhr.responseText;
-        var json = JSON.parse(data.substr(data.indexOf("{")));
+  $.ajax({url: url, headers: {method: "GET", scheme: "https", accept: "*/*",
+    version: "HTTP/1.1", 'accept-language': "en-US,en;q=0.8,fr;q=0.6",
+    cache: true, processData: false},
+    complete: function(xhr,status){
+      var data = xhr.responseText;
+      var json = JSON.parse(data.substr(data.indexOf("{")));
 
-        /* the matches are in json.payload.entries, an array of objects of the form:
-         *
-         *  address: null
-            city_id: 2422390
-            city_name: "Tahoe City, CA"
-            city_page_id: 107885529244686
-            latitude: 39.1997079033
-            longitude: -120.237929977
-            map: Object
-            photo: "https://fbcdn-profile-a.akamaihd.net/static-ak/rsrc.php/v2/y5/r/j258ei8TIHu.png"
-            place_type: "place"
-            subtext: "Tahoe City, California · 14 were here"
-            text: "Pain Mcshlonky Gala"
-            uid: 177557992363854
+      /* the matches are in json.payload.entries, an array of objects of the form:
+       *
+       *  address: null
+          city_id: 2422390
+          city_name: "Tahoe City, CA"
+          city_page_id: 107885529244686
+          latitude: 39.1997079033
+          longitude: -120.237929977
+          map: Object
+          photo: "https://fbcdn-profile-a.akamaihd.net/static-ak/rsrc.php/v2/y5/r/j258ei8TIHu.png"
+          place_type: "place"
+          subtext: "Tahoe City, California · 14 were here"
+          text: "Pain Mcshlonky Gala"
+          uid: 177557992363854
 
-         * use these to construct the HTML for the similar places.
-         * Remove anything over 100 miles away. Also remove the current place.
-         * Optionally order by distance and/or by number of people who've been there.
-         *
-         * If no similar places are found try reducing the search to the first 2 words
-         * or even just the first word in the place name
-         *
-         * FB lays out the typeahead results in the following format:
+       * use these to construct the HTML for the similar places.
+       * Remove anything over 100 miles away. Also remove the current place.
+       * Optionally order by distance and/or by number of people who've been there.
+       *
+       * If no similar places are found try reducing the search to the first 2 words
+       * or even just the first word in the place name
+       *
+       * FB lays out the typeahead results in the following format:
 
-            <div class="PlacesTypeaheadViewList">
-              <ul class="noTrucating compact" id="typeahead_list_u_2v_a" role="listbox">
-                <li class="" title="Wompatuck State Park" aria-label="Wompatuck State Park" role="option">
-                  <img alt="" src="https://fbcdn-profile-a.akamaihd.net/hprofile-ak-xap1/v/t1.0-1/c8.0.50.50/p50x50/10175994_722621287782410_8414702203789626750_n.jpg?oh=a10cfb04d83e48d89c63a81ba29548a9&amp;oe=555D949D&amp;__gda__=1428526241_344430b5ebc1a56de6d5009ba4b331e2">
-                  <span class="text">Wompatuck State Park</span>
-                  <span class="subtext">204 Union St · Hingham, Massachusetts · 3,538 were here</span>
-                  </li>
+          <div class="PlacesTypeaheadViewList">
+            <ul class="noTrucating compact" id="typeahead_list_u_2v_a" role="listbox">
+              <li class="" title="Wompatuck State Park" aria-label="Wompatuck State Park" role="option">
+                <img alt="" src="https://fbcdn-profile-a.akamaihd.net/hprofile-ak-xap1/v/t1.0-1/c8.0.50.50/p50x50/10175994_722621287782410_8414702203789626750_n.jpg?oh=a10cfb04d83e48d89c63a81ba29548a9&amp;oe=555D949D&amp;__gda__=1428526241_344430b5ebc1a56de6d5009ba4b331e2">
+                <span class="text">Wompatuck State Park</span>
+                <span class="subtext">204 Union St · Hingham, Massachusetts · 3,538 were here</span>
+                </li>
 
-         * which we can mimick for consistency
-         */
+       * which we can mimick for consistency
+       */
 
-        var entries = json.payload.entries;
-        var html = null;
-        if ( entries ){
-          var i = 0;
+      var entries = json.payload.entries;
+      var html = null;
+      if ( entries ){
+        var i = 0;
 
-          while ( i < entries.length ){ // eliminate the current node from the results
-            if ( entries[i].uid == pageId ) entries.splice(i,1);
-            else i++;
-          }
-
-          pageAttributes = fbpp.get();
-
-          $.each(entries,function(i,entry){ // get the distance to each other node
-            var radiusKM = GreatCircle.distance(latitude,longitude,entry.latitude,entry.longitude,'KM');
-            entry.radiusKM = radiusKM;
-            entry.Levenshtein = LevenshteinDistance(pageAttributes.pageName,entry.text);
-            entry.checkins = entry.subtext.lastIndexOf("·") > -1 ? Number(entry.subtext.substring(entry.subtext.lastIndexOf("·")).split(" ")[1].replace(',','').replace('.','')) : 0;
-            if ( entry.checkins === 0 ) entry.checkins = 1; // avoid div by zero
-            entry.distance = ( Math.pow( entry.radiusKM + 0.01, 1.5) * ( entry.Levenshtein + 0.1) ) / Math.log10( entry.checkins ); // compound distance
-            console.log(entry.text+' '+entry.subtext+' Radius: '+entry.radiusKM+' Levenshtein: '+entry.Levenshtein+' Checkins: '+entry.checkins+' Distance: '+entry.distance);
-          });
-
-          i = 0;
-          while (i < entries.length ){
-            if ( entries[i].radiusKM > 100 ) entries.splice(i,1); // eliminate any entries over 100 km away
-            else i++;
-          }
-
-          entries.sort(compareDistance); // sort by distance
-          entries = entries.slice(0,15); // limit to the first 15 results
-
-          var height = pageAttributes.rect.height;
-          var width = pageAttributes.rect.width;
-
-          html = '<div class="uiTypeaheadView PlacesTypeaheadView PlacesTypeaheadViewPopulated" style="position:relative; width:'+width+'px; max-height:'+height+'px;" id="u_9_d"><div class="uiScrollableArea nofade uiScrollableAreaWithShadow contentAfter" style="max-height:'+height+'px" id="u_9_e"><div class="uiScrollableAreaWrap scrollable" style="max-height:'+height+'px;" aria-label="Scrollable region" role="group" tabindex="-1"><div class="uiScrollableAreaBody" style="width:'+width+'px;"><div class="uiScrollableAreaContent"><div class="PlacesTypeaheadViewList"><ul class="noTrucating compact" id="typeahead_list_u_9_a" role="listbox">';
-          $.each(entries,function(index,entry){
-            html += '<li class="" title="'+entry.text+'" aria-label="'+entry.text+'" role="option">';
-            html += '<img src='+entry.photo+'>';
-            html += '<span class="text">'+entry.text+'</span>';
-            html += '<span>'+entry.subtext+'</span></li>';
-          });
-
-          html += '</ul></div></div></div></div></div>';
+        while ( i < entries.length ){ // eliminate the current node from the results
+          if ( entries[i].uid == pageId ) entries.splice(i,1);
+          else i++;
         }
-        if ( entries.length === 0) html = '<h1 style="padding:30px">No similar nearby entries!</h1>';
-        $('#fbppSimilar').html(html);
-        $('#fbppSimilar').show();
-      },
-      error: function(jqXHR,textStatus,err) { // always get a parseError but don't care
-      }
-    });
 
-  }).fail(function(){
-    html = '<h1 style="padding:30px">Error in facebook graph api!</h1>';
+        pageAttributes = fbpp.get();
+
+        $.each(entries,function(i,entry){ // get the distance to each other node
+          var radiusKM = GreatCircle.distance(latitude,longitude,entry.latitude,entry.longitude,'KM');
+          entry.radiusKM = radiusKM;
+          entry.Levenshtein = LevenshteinDistance(pageAttributes.pageName,entry.text);
+          entry.checkins = entry.subtext.lastIndexOf("·") > -1 ? Number(entry.subtext.substring(entry.subtext.lastIndexOf("·")).split(" ")[1].replace(',','').replace('.','')) : 0;
+          if ( entry.checkins === 0 ) entry.checkins = 1; // avoid div by zero
+          entry.distance = ( Math.pow( entry.radiusKM + 0.01, 1.5) * ( entry.Levenshtein + 0.1) ) / Math.log10( entry.checkins ); // compound distance
+          console.log(entry.text+' '+entry.subtext+' Radius: '+entry.radiusKM+' Levenshtein: '+entry.Levenshtein+' Checkins: '+entry.checkins+' Distance: '+entry.distance);
+        });
+
+        i = 0;
+        while (i < entries.length ){
+          if ( entries[i].radiusKM > 100 ) entries.splice(i,1); // eliminate any entries over 100 km away
+          else i++;
+        }
+
+        entries.sort(compareDistance); // sort by distance
+        entries = entries.slice(0,15); // limit to the first 15 results
+
+        var height = pageAttributes.rect.height;
+        var width = pageAttributes.rect.width;
+
+        html = '<div class="uiTypeaheadView PlacesTypeaheadView PlacesTypeaheadViewPopulated" style="position:relative; width:'+width+'px; max-height:'+height+'px;" id="u_9_d"><div class="uiScrollableArea nofade uiScrollableAreaWithShadow contentAfter" style="max-height:'+height+'px" id="u_9_e"><div class="uiScrollableAreaWrap scrollable" style="max-height:'+height+'px;" aria-label="Scrollable region" role="group" tabindex="-1"><div class="uiScrollableAreaBody" style="width:'+width+'px;"><div class="uiScrollableAreaContent"><div class="PlacesTypeaheadViewList"><ul class="noTrucating compact" id="typeahead_list_u_9_a" role="listbox">';
+        $.each(entries,function(index,entry){
+          html += '<li class="" title="'+entry.text+'" aria-label="'+entry.text+'" role="option">';
+          html += '<img src='+entry.photo+'>';
+          html += '<span class="text">'+entry.text+'</span>';
+          html += '<span>'+entry.subtext+'</span></li>';
+        });
+
+        html += '</ul></div></div></div></div></div>';
+      }
+      if ( entries.length === 0) html = '<h1 style="padding:30px">No similar nearby entries!</h1>';
       $('#fbppSimilar').html(html);
       $('#fbppSimilar').show();
+    },
+    error: function(jqXHR,textStatus,err) { // always get a parseError but don't care
+    }
   });
 }
 
@@ -418,6 +413,5 @@ function LevenshteinDistance(a, b){
       }
     }
   }
-
   return matrix[b.length][a.length];
 }
