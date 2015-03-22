@@ -22,7 +22,8 @@
  */
 
 var fbpp = function(){
-  var initialized, editBox, container, map, mapButtons, fbppContentRect, pageId, cityId, pageName, pageAddress, previousPageName, latitude, longitude; // define private variables
+  var initialized, editBox, container, map, mapButtons, fbppContentRect, pageId,
+  cityId, pageName, pageAddress, previousPageName, latitude, longitude, address; // define private variables
 
   return {
 
@@ -48,11 +49,27 @@ var fbpp = function(){
       $("#fbpp_showMap").click(function(){ fbpp.showMap(); });
       $("#fbpp_showSimilarNearby").click(function(){ fbpp.showSimilarNearby(); });
       $("#places_editor_save").click(function(){ fbpp.next(); });
+      $("#fbpp_geocode").click(function(){ fbpp.geocode(); });
       $("#fbpp_reportButton").click(function(){ fbpp.report(); });
     },
 
+    geocode: function(){ // display the reverse geocoded address info
+      fbpp.hideParts();
+      var html = "<p style='margin-top:20px'>The map coordinates reverse geocode to the following address:</p>";
+      html += "<div style='margin-left:40px'>";
+      html += "<h2>"+address.addressLine+"</h2>";
+      html += "<h2>"+address.locality+"</h2>";
+      html += "<h2>"+address.adminDistrict+"</h2>";
+      html += "<h2>"+address.postalCode+"</h2>";
+      html += "<h2>"+address.countryRegion+"</h2>";
+      html += "</div>";
+
+      $('#fbppGeocode').html(html);
+      $('#fbppGeocode').show();
+    },
+
     get: function(){
-      return { pageName: pageName, pageId: pageId, cityId: cityId, latitude: latitude, longitude: longitude, rect: fbppContentRect };
+      return { pageName: pageName, pageId: pageId, cityId: cityId, latitude: latitude, longitude: longitude, rect: fbppContentRect, address: address };
     },
 
     hideParts: function(){
@@ -60,7 +77,8 @@ var fbpp = function(){
       mapButtons.hide();
       $('#fbpp_iFrame').hide();
       $('#fbppSimilar').hide();
-    },
+      $('#fbppGeocode').hide();
+   },
 
     modifyDOM: function(){
       var fbppMenuBar = $("#fbpp");
@@ -75,6 +93,9 @@ var fbpp = function(){
       $('#fbppContent').append("<div id='fbppSimilar'></div>");
       $('#fbppSimilar').hide();
 
+      $('#fbppContent').append("<div id='fbppGeocode' style='margin: 10px'></div>");
+      $('#fbppGeocode').hide();
+
       var fbppDivStyle = "'background-color: rgb(55, 62, 77); color:#fff; width:100%; height:40px;'";
       var fbppButtonStyle ="'font-size: 14px; background-color: rgb(55,62,77); color: #fff; border:0; padding-top: 12px; padding-left: 20px; outline: none;'";
       var fbppHTML = "<div id='fbpp' style="+fbppDivStyle+"></div>";
@@ -83,6 +104,7 @@ var fbpp = function(){
       $("#fbpp").append("<button id='fbpp_showMap' style="+fbppButtonStyle+">Map</button>");
       $("#fbpp").append("<button id='fbpp_showBing' style="+fbppButtonStyle+">Bing</button>");
       $("#fbpp").append("<button id='fbpp_showSimilarNearby' style="+fbppButtonStyle+">Similar Nearby</button>");
+      $("#fbpp").append("<button id='fbpp_geocode' style="+fbppButtonStyle+">Address</button>");
       $("#fbpp").append("<button id='fbpp_reportButton' style="+fbppButtonStyle+">Report</button>");
       $("#fbpp").append("<a id='fbpp_report' class='_54nc' href='#' rel='dialog' role='menuitem'></a>");
 
@@ -151,17 +173,20 @@ var fbpp = function(){
     search: function(){ // show the bing search including the city
       fbpp.hideParts();
       $('#fbpp_iFrame').show();
+      var searchString;
 
       var addressParts = $(".fwn.fcw")[0];
       if ( addressParts ){
         addressParts = addressParts.textContent.split("·");
-        var pageName = encodeURIComponent($("._4c0z").find("a").text().trim() +
-          " " + addressParts[addressParts.length-1].trim());
-        if ( pageName != previousPageName ){
-          $("#fbpp_iFrame").attr('src',"https://www.bing.com/search?q="+pageName);
-          previousPageName = pageName;
-        }
+        searchString = pageName + ' ' + addressParts[addressParts.length-1].trim();
+      } else {
+        searchString = pageName + ' ' + address.locality;
       }
+      $("#fbpp_iFrame").attr('src',"https://www.bing.com/search?q="+searchString);
+    },
+
+    setAddress: function(doc){ // callback for reverse geocoding to set address
+      address = doc;
     },
 
     showMap: function(){
@@ -312,7 +337,7 @@ function reverseGeocode(latitude,longitude){
   var request = { type: 'geocode', latitude: latitude, longitude: longitude };
   chrome.runtime.sendMessage(request, function(response) {
     if ( chrome.runtime.lastError ) console.log( chrome.runtime.lastError );
-    console.log(response);
+    fbpp.setAddress(response.address);
   }); 
 }
 

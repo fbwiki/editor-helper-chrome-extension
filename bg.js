@@ -25,9 +25,9 @@ chrome.runtime.onMessage.addListener( // listener for the content script, see ht
   function(request, sender, sendResponse) {
     if ( request.type == 'geocode' ){
       var BingMapsKey = "AkF0mEyG789RQA6CcLimWZMzrDNF6MNSwRJOmNWb9gK_JGiwOBeMoQUoY1MFqksg";
-      var url = 'https://dev.virtualearth.net/REST/v1/Locations/'+request.latitude+','+request.longitude+'?o=xml&key='+BingMapsKey;
+      var url = 'https://dev.virtualearth.net/REST/v1/Locations/'+request.latitude+','+request.longitude+'?key='+BingMapsKey;
       $.get(url,function(data){
-        sendResponse({data: 'some stuff'}); // send the response
+        sendResponse({address: data.resourceSets[0].resources[0].address}); // send the address
       });
     }
     return true;
