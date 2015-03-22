@@ -30,7 +30,7 @@ chrome.runtime.onMessage.addListener( // listener for the content script, see ht
         sendResponse({address: data.resourceSets[0].resources[0].address}); // send the address
       });
     }
-    return true;
+    return true; // h/t to http://stackoverflow.com/questions/20077487/chrome-extension-message-passing-response-not-sent
   }
 );
 
