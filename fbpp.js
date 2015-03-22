@@ -55,6 +55,7 @@ var fbpp = function(){
 
     geocode: function(){ // display the reverse geocoded address info
       fbpp.hideParts();
+      $('#fbpp_geocode').css('text-decoration','underline');
       var html = "<p style='margin-top:20px'>The map coordinates reverse geocode to the following address:</p>";
       html += "<div style='margin-left:40px'>";
       html += "<h2>"+address.addressLine+"</h2>";
@@ -75,9 +76,16 @@ var fbpp = function(){
     hideParts: function(){
       map.hide();
       mapButtons.hide();
+      $('#fbpp_showMap').css('text-decoration','none');
+
       $('#fbpp_iFrame').hide();
+      $('#fbpp_showBing').css('text-decoration','none');
+
       $('#fbppSimilar').hide();
+      $('#fbpp_showSimilarNearby').css('text-decoration','none');
+
       $('#fbppGeocode').hide();
+      $('#fbpp_geocode').css('text-decoration','none');
    },
 
     modifyDOM: function(){
@@ -173,6 +181,7 @@ var fbpp = function(){
     search: function(){ // show the bing search including the city
       fbpp.hideParts();
       $('#fbpp_iFrame').show();
+      $('#fbpp_showBing').css('text-decoration','underline');
       var searchString;
 
       var addressParts = $(".fwn.fcw")[0];
@@ -193,10 +202,12 @@ var fbpp = function(){
       fbpp.hideParts();
       map.show();
       mapButtons.show();
+      $('#fbpp_showMap').css('text-decoration','underline');
     },
 
     showSimilarNearby: function(){
       fbpp.hideParts();
+      $('#fbpp_showSimilarNearby').css('text-decoration','underline');
       showSimilarNearby(fbpp.get());
     },
   };
