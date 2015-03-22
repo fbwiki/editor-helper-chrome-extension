@@ -279,7 +279,7 @@ function showSimilarNearby(pageAttributes){
           entry.Levenshtein = LevenshteinDistance(pageAttributes.pageName,entry.text);
           entry.checkins = entry.subtext.lastIndexOf("·") > -1 ? Number(entry.subtext.substring(entry.subtext.lastIndexOf("·")).split(" ")[1].replace(',','').replace('.','')) : 0;
           if ( entry.checkins === 0 ) entry.checkins = 1; // avoid div by zero
-          entry.distance = ( Math.pow( entry.radiusKM + 0.01, 1.5) * ( entry.Levenshtein + 0.1) ) / Math.log10( entry.checkins ); // compound distance
+          entry.distance = ( Math.pow( entry.radiusKM + 0.01, 1.5) * ( entry.Levenshtein + 0.1) ) / Math.log10( 10 * entry.checkins ); // compound distance
           console.log(entry.text+' '+entry.subtext+' Radius: '+entry.radiusKM+' Levenshtein: '+entry.Levenshtein+' Checkins: '+entry.checkins+' Distance: '+entry.distance);
         });
 
