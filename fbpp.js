@@ -93,16 +93,20 @@ var fbpp = function(){
       if ( newPageId != pageId ){
         pageId = newPageId;
         cityId = $("input[name=seed]").attr('value');
+
         var pageObj = $.get("https://graph.facebook.com/"+pageId,function(data){ // this call works *without* an access token!
           latitude = data.location.latitude;
           longitude = data.location.longitude;
           pageName = data.name;
+
           if ( $('#checkinCounter').length === 0 ){
             $("._h5k").append('<div id="checkinCounter"' +
               ' style="font-weight:normal; color:white; top:11px; right:12px; position:absolute"></div>');
           }
+
           $('#checkinCounter').html('<i style="width: 16px; height: 17px; background-position: -17px -462px; display: inline-block; left: -19px; position: absolute; background-image: url(https://fbstatic-a.akamaihd.net/rsrc.php/v2/yU/r/rYmSLuPcGQQ.png)"></i>'+data.checkins);
           console.log("New place, name: "+pageName+" id: "+pageId+" cityId: "+cityId+" lat: "+latitude+" long: "+longitude);
+          reverseGeocode(latitude,longitude);
         });
       }
     },
@@ -175,16 +179,6 @@ var fbpp = function(){
 
 $(document).ready(function(){ fbpp.init(); }); // load the extension objects once the page has finished loading
 $(window).resize(function(){ fbpp.resize(); }); // react to window resize events
-
-function sendMsg(){
-  // Attempting to setup comms with bg page
-  // from https://developer.chrome.com/extensions/messaging
-  chrome.runtime.sendMessage({greeting: "hello"}, function(response) {
-    console.log(response);
-    if ( chrome.runtime.lastError ) console.log( chrome.runtime.lastError );
-    return response;
-  });
-}
 
 function showSimilarNearby(pageAttributes){
    /* Tried to use the graph API but it doesn't yet support "graph search" with
@@ -312,6 +306,14 @@ function showSimilarNearby(pageAttributes){
     error: function(jqXHR,textStatus,err) { // always get a parseError but don't care
     }
   });
+}
+
+function reverseGeocode(latitude,longitude){
+  var request = { type: 'geocode', latitude: latitude, longitude: longitude };
+  chrome.runtime.sendMessage(request, function(response) {
+    if ( chrome.runtime.lastError ) console.log( chrome.runtime.lastError );
+    console.log(response);
+  }); 
 }
 
 // pattern for finding nearby places:

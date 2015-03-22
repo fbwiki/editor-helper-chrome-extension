@@ -9,6 +9,7 @@
 
   "permissions": [
     "https://www.facebook.com/editor",
+    "https://dev.virtualearth.net/",
     "tabs",
     "storage"
   ],
