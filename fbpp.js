@@ -55,7 +55,7 @@ var fbpp = function(){
 
     geocode: function(){ // display the reverse geocoded address info
       fbpp.hideParts();
-      $('#fbpp_geocode').css('text-decoration','underline');
+      $('#fbpp_geocode').css('border-bottom','2px solid white');
       var html = "<p style='margin-top:20px'>The map coordinates reverse geocode to the following address:</p>";
       html += "<div style='margin-left:40px'>";
       html += "<h2>"+address.addressLine+"</h2>";
@@ -76,16 +76,8 @@ var fbpp = function(){
     hideParts: function(){
       map.hide();
       mapButtons.hide();
-      $('#fbpp_showMap').css('text-decoration','none');
-
-      $('#fbpp_iFrame').hide();
-      $('#fbpp_showBing').css('text-decoration','none');
-
-      $('#fbppSimilar').hide();
-      $('#fbpp_showSimilarNearby').css('text-decoration','none');
-
-      $('#fbppGeocode').hide();
-      $('#fbpp_geocode').css('text-decoration','none');
+      $('.fbpp').css('border-bottom','none');
+      $('.fbppDiv').hide();
    },
 
     modifyDOM: function(){
@@ -95,24 +87,24 @@ var fbpp = function(){
       map.wrap("<div id='fbppContent'></div>"); // the content area for our new UI widget
       $("#fbppContent").wrap("<div id='fbppBox'></div>");
 
-      $("#fbppContent").append("<iframe id='fbpp_iFrame' frameborder='0'></iframe>");
+      $("#fbppContent").append("<iframe id='fbpp_iFrame' class='fbppDiv' frameborder='0'></iframe>");
       $('#fbpp_iFrame').hide();
 
-      $('#fbppContent').append("<div id='fbppSimilar'></div>");
+      $('#fbppContent').append("<div id='fbppSimilar' class='fbppDiv'></div>");
       $('#fbppSimilar').hide();
 
-      $('#fbppContent').append("<div id='fbppGeocode' style='margin: 10px'></div>");
+      $('#fbppContent').append("<div id='fbppGeocode' class='fbppDiv' style='margin: 10px'></div>");
       $('#fbppGeocode').hide();
 
       var fbppDivStyle = "'background-color: rgb(55, 62, 77); color:#fff; width:100%; height:40px;'";
-      var fbppButtonStyle ="'font-size: 14px; background-color: rgb(55,62,77); color: #fff; border:0; padding-top: 12px; padding-left: 20px; outline: none;'";
+      var fbppButtonStyle ="'font-size: 14px; background-color: rgb(55,62,77); color: #fff; border:0; padding-top: 12px; margin-left: 20px; outline: none;'";
       var fbppHTML = "<div id='fbpp' style="+fbppDivStyle+"></div>";
 
       $("#fbppBox").prepend(fbppHTML); // the overall box
-      $("#fbpp").append("<button id='fbpp_showMap' style="+fbppButtonStyle+">Map</button>");
-      $("#fbpp").append("<button id='fbpp_showBing' style="+fbppButtonStyle+">Bing</button>");
-      $("#fbpp").append("<button id='fbpp_showSimilarNearby' style="+fbppButtonStyle+">Similar Nearby</button>");
-      $("#fbpp").append("<button id='fbpp_geocode' style="+fbppButtonStyle+">Address</button>");
+      $("#fbpp").append("<button id='fbpp_showMap' class='fbpp' style="+fbppButtonStyle+">Map</button>");
+      $("#fbpp").append("<button id='fbpp_showBing' class='fbpp' style="+fbppButtonStyle+">Bing</button>");
+      $("#fbpp").append("<button id='fbpp_showSimilarNearby' class='fbpp' style="+fbppButtonStyle+">Similar Nearby</button>");
+      $("#fbpp").append("<button id='fbpp_geocode' class='fbpp' style="+fbppButtonStyle+">Address</button>");
       $("#fbpp").append("<button id='fbpp_reportButton' style="+fbppButtonStyle+">Report</button>");
       $("#fbpp").append("<a id='fbpp_report' class='_54nc' href='#' rel='dialog' role='menuitem'></a>");
 
@@ -169,7 +161,7 @@ var fbpp = function(){
 
         map.css("height",editBox[0].getBoundingClientRect().height-40);
         mapButtons.css("top",topOfEditor+50);
-        mapButtons.css("left",rightOfEditor-30);
+        mapButtons.css("left",rightOfEditor-96);
 
         fbppContentRect = $('#fbppContent')[0].getBoundingClientRect();
 
@@ -181,7 +173,7 @@ var fbpp = function(){
     search: function(){ // show the bing search including the city
       fbpp.hideParts();
       $('#fbpp_iFrame').show();
-      $('#fbpp_showBing').css('text-decoration','underline');
+      $('#fbpp_showBing').css('border-bottom','2px solid white');
       var searchString;
 
       var addressParts = $(".fwn.fcw")[0];
@@ -202,12 +194,12 @@ var fbpp = function(){
       fbpp.hideParts();
       map.show();
       mapButtons.show();
-      $('#fbpp_showMap').css('text-decoration','underline');
+      $('#fbpp_showMap').css('border-bottom','2px solid white');
     },
 
     showSimilarNearby: function(){
       fbpp.hideParts();
-      $('#fbpp_showSimilarNearby').css('text-decoration','underline');
+      $('#fbpp_showSimilarNearby').css('border-bottom','2px solid white');
       showSimilarNearby(fbpp.get());
     },
   };
