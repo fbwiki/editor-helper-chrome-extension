@@ -51,6 +51,7 @@ var fbpp = function(){
       $("#places_editor_save").click(function(){ fbpp.next(); });
       $("#fbpp_geocode").click(function(){ fbpp.geocode(); });
       $("#fbpp_reportButton").click(function(){ fbpp.report(); });
+      //observe();
     },
 
     geocode: function(){ // display the reverse geocoded address info
@@ -64,7 +65,8 @@ var fbpp = function(){
       html += "<h2>"+address.postalCode+"</h2>";
       html += "<h2>"+address.countryRegion+"</h2>";
       html += "</div>";
-
+      html += "<p style='margin-top:20px'>Due to GPS limitations, please do not depend on the exact street address!</p>";
+      html += "<p><a href='https://www.google.com/maps/@"+latitude+","+longitude+",16z' target='new'>Explore in Google Maps</a></p>";
       $('#fbppGeocode').html(html);
       $('#fbppGeocode').show();
     },
@@ -135,7 +137,6 @@ var fbpp = function(){
 
     next: function(){
       fbpp.showMap();
-      setTimeout(function(){fbpp.newPlace();},2000); // couldn't get mutation observers to work right :(
     },
 
     report: function(){
@@ -208,6 +209,18 @@ var fbpp = function(){
 
 $(document).ready(function(){ fbpp.init(); }); // load the extension objects once the page has finished loading
 $(window).resize(function(){ fbpp.resize(); }); // react to window resize events
+
+// setup mutation observer to watch for changes in the module_editor
+// to trigger the newPlace logic
+
+var observer = new MutationObserver(function(mutations){
+  fbpp.newPlace();
+});
+
+observer.observe(
+  document.getElementById('module_editor'),
+  { childList: true, attributes: false }
+);
 
 function showSimilarNearby(pageAttributes){
    /* Tried to use the graph API but it doesn't yet support "graph search" with
