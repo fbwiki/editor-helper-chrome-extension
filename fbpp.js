@@ -160,10 +160,11 @@ var fbpp = function(){
         fbppBox.css("position","absolute");
 
         map.css("height",editBox[0].getBoundingClientRect().height-40);
-        mapButtons.css("top",topOfEditor+50);
-        mapButtons.css("left",rightOfEditor-96);
-
         fbppContentRect = $('#fbppContent')[0].getBoundingClientRect();
+        mapButtons.css("top","100px");
+        mapButtons.css("left",fbppContentRect.left-30);
+        mapButtons.css("right","inherit");
+
 
         $("#fbpp_iFrame").css("height",fbppContentRect.height);
         $("#fbpp_iFrame").css("width",fbppContentRect.width);
