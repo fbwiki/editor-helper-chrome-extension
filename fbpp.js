@@ -222,6 +222,11 @@ observer.observe(
   { childList: true, attributes: false }
 );
 
+observer.observe(
+  document.getElementById('places_editor_option_selector'),
+  { childList: true, attributes: false }
+);
+
 function showSimilarNearby(pageAttributes){
    /* Tried to use the graph API but it doesn't yet support "graph search" with
    * fuzzy name matching. Basically couldn't be done.
