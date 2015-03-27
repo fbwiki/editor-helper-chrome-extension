@@ -1,15 +1,11 @@
 ##FB Wiki's Graph Editor Helper (Chrome Extension)
-This is a chrome extension to enhance the productivity of Facebook's Graph Editor, found at [www.facebook.com/editor](https://www.facebook.com/editor).
-
-###Known as Graph Editor Bling
-The name *Graph Editor Bling* was coined by the original developer, [MichelFloyd](https://github.com/MichelFloyd) on GitHub. The developer agreed to move the project to the [FB Wiki](http://www.fbwiki.com/#tools) along with other tools to help Facebook users.
-
-###The Extension
-This extension puts the normal Graph Editor map inside a box to the right of the main editor. It then adds several useful controls to the editor.
+The **Graph Editor Helper** (*dubbed* **_Graph Editor Bling_** *by the original developer*) is a Google Chrome extention/tool made by the [FB Wiki](http://www.fbwiki.com/#tools) which is designed to improve the speed and accuracy with which places can be edited using [Facebook's Graph Editor](http://www.jasonfriend.me/facebookplaces/w/wiki:editor:start) (found at [www.facebook.com/editor](https://www.facebook.com/editor)). This is a GitHub project which you can contribute to and [read the documentation](http://www.jasonfriend.me/facebookplaces/w/wiki:editor:community_chrome_extension).
 
 ###Install
-The current production version of this extension is installable from
-https://chrome.google.com/webstore/detail/fb-places-pro/imnppmbmlacllpppkbcnjfnadjikmpgi?hl=en-US
+The current production version of this extension is installable from the [Google Chrome Webstore](https://chrome.google.com/webstore/detail/fb-places-pro/imnppmbmlacllpppkbcnjfnadjikmpgi?hl=en-US) but we recommend you follow the link straight from the FB Wiki website for your safety: [www.fbwiki.com#tools](http://www.fbwiki.com/#tools) (*please note the website redirects to the hosting on [Jason Friend's domain](http://www.jasonfriend.me/fbwiki/#team)*).
+
+###FULL DOCUMENTATION
+The full documentation can be found on the FB Wiki here: [FB Wiki's Graph Editor Helper (Chrome Extension)](http://www.jasonfriend.me/facebookplaces/w/wiki:editor:community_chrome_extension).
 
 ###Other Platforms
 If you want to help the FB Wiki bring this to other platforms, then please [let us know](http://www.fbwiki.com/#contact) and we can work together!
