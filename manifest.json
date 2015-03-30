@@ -1,9 +1,9 @@
 {
   "manifest_version": 2,
 
-  "name": "fb-places-pro",
-  "short_name" : "fbpp",
-  "description": "This extension enhances the productivity of the fb places editor.",
+  "name": "FB Wiki's Graph Editor Helper",
+  "short_name" : "GE Helper",
+  "description": "This is a tool made by the FB Wiki which is designed to assist with editing using Facebook's Graph Editor.",
   "version": "0.1.1",
   "icons": { "128": "fbpp-128.png" },
 
