@@ -1,4 +1,5 @@
-/* fb places pro
+/* FB Wiki's Facebook Editor Helper
+ *
  * This modifies the fb places editor to add new capabilities which will
  * hopefully boost the productivity of people using the editor
  *
@@ -18,7 +19,7 @@
  * input[name=seed]           the city id (although it's called a seed in one place, a cityId elsewhere)
  * .fwn.fcw                   the address and city in text
  *
- * See https://github.com/CombatChihuahua/fb-places-pro
+ * See https://github.com/fbwiki/editor-helper-chrome-extension
  */
 
 var fbpp = function(){
