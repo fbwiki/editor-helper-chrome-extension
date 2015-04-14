@@ -1,9 +1,9 @@
 {
   "manifest_version": 2,
 
-  "name": "FB Wiki's Graph Editor Helper",
-  "short_name" : "GE Helper",
-  "description": "This is a tool made by the FB Wiki which is designed to assist with editing using Facebook's Graph Editor.",
+  "name": "FB Wiki's Facebook Editor Helper",
+  "short_name" : "Editor Helper",
+  "description": "This is a tool made by the FB Wiki which is designed to assist with editing using Facebook's Editor app.",
   "version": "0.1.1",
   "icons": { "128": "fbpp-128.png" },
 
@@ -20,7 +20,7 @@
   },
 
   "page_action": {
-    "default_title": "fb places pro",
+    "default_title": "FB Wiki's Facebook Editor Helper",
     "default_icon": "fbpp-32.png",
     "default_popup": "popup.html"
   },
