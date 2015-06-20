@@ -24,13 +24,38 @@
 
 var fbpp = function(){
   var initialized, editBox, container, map, mapButtons, fbppContentRect, pageId,
-  cityId, pageName, pageAddress, previousPageName, latitude, longitude, address; // define private variables
+  cityId, pageName, pageAddress, previousPageName, latitude, longitude, address,
+  language; // define private variables
+
+  var uiStrings = {
+    'en-US': {
+      map: 'Map',
+      bing: 'Bing',
+      similar: 'Similar Nearby',
+      address: 'Address',
+      report: 'Report',
+      reverses: 'The map coordinates reverse geocode to the following address:',
+      gpsLimits: 'Due to GPS limitations, please do not depend on the exact street address!',
+      noNearby: 'No similar nearby entries!',
+    },
+    fr: {
+      map: 'Carte',
+      bing: 'Bing',
+      similar: 'Similaires',
+      address: 'Adresse',
+      report: 'Informer',
+      reverses: "Les coordonées GPS correspondent à l'adresse suivante",
+      gpsLimits: "En raison de limitations de GPS, svp ne dépendez pas de l'adresse exacte!",
+      noNearby: "Pas d'endroits similaires proches",
+    }
+  };
 
   return {
 
     init: function(){
       if ( typeof initialized == 'undefined'){
         initialized = true;
+        language = pickLanguage();
         editBox = $("._5w0h");
         container= $("._4ph-");
         pageId = null;
@@ -52,13 +77,12 @@ var fbpp = function(){
       $("#places_editor_save").click(function(){ fbpp.next(); });
       $("#fbpp_geocode").click(function(){ fbpp.geocode(); });
       $("#fbpp_reportButton").click(function(){ fbpp.report(); });
-      //observe();
     },
 
     geocode: function(){ // display the reverse geocoded address info
       fbpp.hideParts();
       $('#fbpp_geocode').css('border-bottom','2px solid white');
-      var html = "<p style='margin-top:20px'>The map coordinates reverse geocode to the following address:</p>";
+      var html = "<p style='margin-top:20px'>" + uiStrings[language].reverses + "</p>";
       html += "<div style='margin-left:40px'>";
       html += "<h2>"+address.addressLine+"</h2>";
       html += "<h2>"+address.locality+"</h2>";
@@ -66,7 +90,7 @@ var fbpp = function(){
       html += "<h2>"+address.postalCode+"</h2>";
       html += "<h2>"+address.countryRegion+"</h2>";
       html += "</div>";
-      html += "<p style='margin-top:20px'>Due to GPS limitations, please do not depend on the exact street address!</p>";
+      html += "<p style='margin-top:20px'>" + uiStrings[language].gpsLimits + "</p>";
       html += "<p><a href='https://www.google.com/maps/@"+latitude+","+longitude+",16z' target='new'>Explore in Google Maps</a></p>";
       $('#fbppGeocode').html(html);
       $('#fbppGeocode').show();
@@ -104,11 +128,22 @@ var fbpp = function(){
       var fbppHTML = "<div id='fbpp' style="+fbppDivStyle+"></div>";
 
       $("#fbppBox").prepend(fbppHTML); // the overall box
-      $("#fbpp").append("<button id='fbpp_showMap' class='fbpp' style="+fbppButtonStyle+">Map</button>");
-      $("#fbpp").append("<button id='fbpp_showBing' class='fbpp' style="+fbppButtonStyle+">Bing</button>");
-      $("#fbpp").append("<button id='fbpp_showSimilarNearby' class='fbpp' style="+fbppButtonStyle+">Similar Nearby</button>");
-      $("#fbpp").append("<button id='fbpp_geocode' class='fbpp' style="+fbppButtonStyle+">Address</button>");
-      $("#fbpp").append("<button id='fbpp_reportButton' style="+fbppButtonStyle+">Report</button>");
+
+      $("#fbpp").append("<button id='fbpp_showMap' class='fbpp' style=" + 
+        fbppButtonStyle + ">" + uiStrings[language].map + "</button>");
+
+      $("#fbpp").append("<button id='fbpp_showBing' class='fbpp' style=" +
+        fbppButtonStyle + ">" + uiStrings[language].bing + "</button>");
+
+      $("#fbpp").append("<button id='fbpp_showSimilarNearby' class='fbpp' style=" +
+        fbppButtonStyle + ">" + uiStrings[language].similar + "</button>");
+
+      $("#fbpp").append("<button id='fbpp_geocode' class='fbpp' style=" +
+        fbppButtonStyle + ">" + uiStrings[language].address + "</button>");
+
+      $("#fbpp").append("<button id='fbpp_reportButton' style=" +
+        fbppButtonStyle + ">" + uiStrings[language].report + "</button>");
+
       $("#fbpp").append("<a id='fbpp_report' class='_54nc' href='#' rel='dialog' role='menuitem'></a>");
 
     },
@@ -247,8 +282,7 @@ function showSimilarNearby(pageAttributes){
    *
    * There doesn't appear to be anyway of restricting the radius of the returned
    * results, facebook is looking all over the world for dupes. It would be good
-   * to remove the ones >~100 miles away. Need the formula for great circle
-   * distance between two lat-long coordinates */
+   * to remove the ones >~100 miles away.  */
 
   var pageId = pageAttributes.pageId;
   var cityId = pageAttributes.cityId;
@@ -347,7 +381,7 @@ function showSimilarNearby(pageAttributes){
 
         html += '</ul></div></div></div></div></div>';
       }
-      if ( entries.length === 0) html = '<h1 style="padding:30px">No similar nearby entries!</h1>';
+      if ( entries.length === 0) html = '<h1 style="padding:30px">' + uiStrings[language][noNearby] + '</h1>';
       $('#fbppSimilar').html(html);
       $('#fbppSimilar').show();
     },
@@ -372,7 +406,7 @@ var GreatCircle = {
    * usage: GreatCircle.distance(lat1,long1,lat2,long2,{unit}) where unit is one of KM, MI, NM, YD or FT */
 
   validateRadius: function(unit) {
-    var r = {'KM': 6371.009, 'MI': 3958.761, 'NM': 3440.070, 'YD': 6967420, 'FT': 20902260};
+    var r = { KM: 6371.009, MI: 3958.761, NM: 3440.070, YD: 6967420, FT: 20902260 };
     if ( unit in r ) return r[unit];
     else return unit;
   },
@@ -464,4 +498,19 @@ function LevenshteinDistance(a, b){
     }
   }
   return matrix[b.length][a.length];
+}
+
+function pickLanguage(){
+  var languages = navigator.languages;
+  var availableLanguages = ['en-US','fr'];
+  var bestLanguage = null;
+  languages.forEach(function(l){
+    var i = availableLanguages.indexOf(l); // full match
+    var j = availableLanguages.indexOf(l.substr(0,2)); // partial match based on language family
+    if ( !bestLanguage &&  ( i > -1 || j >-1 ) ){
+      bestLanguage = i > -1 ? availableLanguages[i] : availableLanguages[j];
+    }
+  });
+  if ( !bestLanguage ) bestLanguage = 'en-US';
+  return bestLanguage;
 }
