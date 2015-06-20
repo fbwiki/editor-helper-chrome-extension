@@ -12,11 +12,11 @@ chrome.tabs.onUpdated.addListener(function(id, info, tab){ // Listen for any cha
 
     if ( tab.status == "complete" ){
       if ( ON ){
-        console.log("Preparing to setup fb-places-pro! tab.id="+tab.id);
+        console.log("Preparing to setup the FB Wiki's Facebook Editor Helper! tab.id="+tab.id);
         chrome.tabs.executeScript(tab.id, { file: "jquery.min.js" }, function(){ // load jquery
           chrome.tabs.executeScript(tab.id, { file: "fbpp.js" });
         });
-      } else console.log("fb-places-pro is disabled.");
+      } else console.log("The FB Wiki's Facebook Editor Helper is currently disabled.");
     }
   }
 });
