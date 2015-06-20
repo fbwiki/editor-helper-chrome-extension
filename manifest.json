@@ -1,10 +1,10 @@
 {
   "manifest_version": 2,
 
-  "name": "FB Wiki's Facebook Editor Helper",
-  "short_name" : "Editor Helper",
-  "description": "This is a tool made by the FB Wiki which is designed to assist with editing using Facebook's Editor app.",
-  "version": "0.1.1",
+  "name": "Facebook Editor Bling",
+  "short_name" : "Editor Bling",
+  "description": "This Chrome extension is designed to assist with place editing when using Facebook's Editor.",
+  "version": "0.1.8",
   "icons": { "128": "fbpp-128.png" },
 
   "permissions": [
@@ -20,7 +20,7 @@
   },
 
   "page_action": {
-    "default_title": "FB Wiki's Facebook Editor Helper",
+    "default_title": "Facebook Editor Bling",
     "default_icon": "fbpp-32.png",
     "default_popup": "popup.html"
   },

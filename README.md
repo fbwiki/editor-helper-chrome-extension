@@ -3,9 +3,7 @@
 Editor Bling_** *by the original developer, Dr. Michel Floyd*) is a Google
 Chrome extention/tool designed to improve the speed and accuracy with which
 places can be edited using the [Facebook
-Editor](https://www.facebook.com/editor)). This is a GitHub project that you
-can contribute to and [read the
-documentation](http://www.jasonfriend.me/facebookplaces/w/wiki:editor:community_chrome_extension).
+Editor](https://www.facebook.com/editor).
 
 ###Install
 The current production version of this extension is installable from the
