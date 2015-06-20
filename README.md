@@ -13,13 +13,13 @@ The current production version of this extension is installable from the
 Webstore](https://chrome.google.com/webstore/detail/fb-places-pro/imnppmbmlacllpppkbcnjfnadjikmpgi?hl=en-US)
 
 ###FULL DOCUMENTATION
-The full documentation can be found on the FB Wiki here: [FB Wiki's Facebook
-Editor Helper (Chrome
-Extension)](http://www.jasonfriend.me/facebookplaces/w/wiki:editor:community_chrome_extension).
+The full documentation can be found on Jason Friend's site [here](http://www.jasonfriend.me/facebookplaces/w/wiki:editor:community_chrome_extension).
 
-###Other Platforms If you want to help the FB Wiki bring this to other
-platforms, then please [let us know](http://www.fbwiki.com/#contact) and we can
-work together!
+(The docs need to be moved to the fb wiki or put here on GitHub with the extension)
+
+###Other Browsers
+If you want to help the FB Wiki bring this to other browsers, then please [let
+us know](http://www.fbwiki.com/#contact) and we can work together!
 
 ###License This has an MIT License, for more details please see '/LICENSE' and
 [www.fbwiki.com/#legal](http://www.fbwiki.com/#legal). Please note that this is
