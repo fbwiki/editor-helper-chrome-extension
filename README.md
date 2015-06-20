@@ -21,6 +21,7 @@ The full documentation can be found on Jason Friend's site [here](http://www.jas
 If you want to help the FB Wiki bring this to other browsers, then please [let
 us know](http://www.fbwiki.com/#contact) and we can work together!
 
-###License This has an MIT License, for more details please see '/LICENSE' and
+###License
+This has an MIT License, for more details please see '/LICENSE' and
 [www.fbwiki.com/#legal](http://www.fbwiki.com/#legal). Please note that this is
 a fork of the original extensions repo which has since superceeded it.
