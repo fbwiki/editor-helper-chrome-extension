@@ -327,7 +327,7 @@ function showSimilarNearby(pageAttributes){
        * FB lays out the typeahead results in the following format:
 
           <div class="PlacesTypeaheadViewList">
-            <ul class="noTrucating compact" id="typeahead_list_u_2v_a" role="listbox">
+            <ul class="noTruncating compact" id="typeahead_list_u_2v_a" role="listbox">
               <li class="" title="Wompatuck State Park" aria-label="Wompatuck State Park" role="option">
                 <img alt="" src="https://fbcdn-profile-a.akamaihd.net/hprofile-ak-xap1/v/t1.0-1/c8.0.50.50/p50x50/10175994_722621287782410_8414702203789626750_n.jpg?oh=a10cfb04d83e48d89c63a81ba29548a9&amp;oe=555D949D&amp;__gda__=1428526241_344430b5ebc1a56de6d5009ba4b331e2">
                 <span class="text">Wompatuck State Park</span>
@@ -371,7 +371,7 @@ function showSimilarNearby(pageAttributes){
         var height = pageAttributes.rect.height;
         var width = pageAttributes.rect.width;
 
-        html = '<div class="uiTypeaheadView PlacesTypeaheadView PlacesTypeaheadViewPopulated" style="position:relative; width:'+width+'px; max-height:'+height+'px;" id="u_9_d"><div class="uiScrollableArea nofade uiScrollableAreaWithShadow contentAfter" style="max-height:'+height+'px" id="u_9_e"><div class="uiScrollableAreaWrap scrollable" style="max-height:'+height+'px;" aria-label="Scrollable region" role="group" tabindex="-1"><div class="uiScrollableAreaBody" style="width:'+width+'px;"><div class="uiScrollableAreaContent"><div class="PlacesTypeaheadViewList"><ul class="noTrucating compact" id="typeahead_list_u_9_a" role="listbox">';
+        html = '<div class="uiTypeaheadView PlacesTypeaheadView PlacesTypeaheadViewPopulated" style="position:relative; width:'+width+'px; max-height:'+height+'px;" id="u_9_d"><div class="uiScrollableArea nofade uiScrollableAreaWithShadow contentAfter" style="max-height:'+height+'px" id="u_9_e"><div class="uiScrollableAreaWrap scrollable" style="max-height:'+height+'px;" aria-label="Scrollable region" role="group" tabindex="-1"><div class="uiScrollableAreaBody" style="width:'+width+'px;"><div class="uiScrollableAreaContent"><div class="PlacesTypeaheadViewList"><ul class="noTruncating compact" id="typeahead_list_u_9_a" role="listbox">';
         $.each(entries,function(index,entry){
           html += '<li class="" title="'+entry.text+'" aria-label="'+entry.text+'" role="option">';
           html += '<img src='+entry.photo+'>';
