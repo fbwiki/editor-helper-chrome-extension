@@ -1,4 +1,5 @@
-## Facebook Editor Bling (Chrome Extension) The **Editor Helper** (formerly
+## Facebook Editor Bling (Chrome Extension) 
+The **Editor Helper** (formerly
 **_Facebook Places Pro_** *or* **_Graph Editor Helper_**, *dubbed* **_Facebook
 Editor Bling_** *by the original developer, Dr. Michel Floyd*) is a Google
 Chrome extension/tool designed to improve the speed and accuracy with which
